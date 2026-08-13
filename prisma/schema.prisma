@@ -1,0 +1,202 @@
+// CASUS — Esquema de base de datos
+//
+// Principio de diseño: "profession" es un dato (string/enum), no una tabla.
+// Así se agregan nuevas profesiones (psicología, nutrición, etc.) sin
+// migraciones ni reestructurar el modelo. Los prompts de IA específicos por
+// profesión viven en /lib/ai/prompts, no en la base de datos.
+//
+// Principio de privacidad: NUNCA se guarda el texto original que el usuario
+// escribe/dicta. Solo se persiste el resultado ya desidentificado
+// (ver Content.deidentifiedText) y un registro de qué se detectó/removió
+// (PrivacyFlag), sin el valor identificable en sí.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Plan {
+  FREE
+  PRO
+  PREMIUM
+}
+
+enum ContentFormat {
+  REEL
+  CARRUSEL
+  POST
+  STORIES
+}
+
+enum ContentObjective {
+  EDUCAR
+  AUTORIDAD
+  CONSULTAS
+  INTERACCION
+  CONFIANZA
+}
+
+enum ContentStatus {
+  BORRADOR
+  DESIDENTIFICADO
+  GENERADO
+  EDITADO
+  GUARDADO
+  ARCHIVADO
+}
+
+enum RiskLevel {
+  BAJO
+  REVISAR
+  ALTO
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  emailVerified DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  profile      Profile?
+  contents     Content[]
+  subscription Subscription?
+  usage        Usage[]
+  settings     Settings?
+
+  @@map("users")
+}
+
+// Perfil profesional. "profession" y "specialty" son texto libre/controlado
+// por una lista en la capa de aplicación, no un enum de base de datos, para
+// poder sumar profesiones sin migrar el esquema.
+model Profile {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  displayName    String
+  profession     String // ej: "fonoaudiologia"
+  specialty      String? // ej: "lenguaje infantil"
+  targetAudience String? // a quién le habla en redes
+  mainNetwork    String? // instagram, tiktok, etc.
+  mainGoal       String // conseguir_pacientes | autoridad | educar | seguidores | consultas | promocion
+  onboardedAt    DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("profiles")
+}
+
+// Una pieza de contenido. NO tiene columna para el texto original del caso.
+model Content {
+  id                 String            @id @default(cuid())
+  userId             String
+  user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title              String?
+  objective          ContentObjective?
+  format             ContentFormat?
+  status             ContentStatus     @default(BORRADOR)
+  riskLevel          RiskLevel?
+  clinicalLearning   String? // aprendizaje extraído, ya desidentificado
+  deidentifiedInput  String? // el input del usuario, ya desidentificado (nunca el original)
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  versions      ContentVersion[]
+  analyses      Analysis[]
+  privacyFlags  PrivacyFlag[]
+
+  @@index([userId, status])
+  @@map("content")
+}
+
+// Cada generación (hook/guion/caption/etc.) queda versionada para permitir
+// "duplicar" y conservar historial sin sobreescribir.
+model ContentVersion {
+  id        String   @id @default(cuid())
+  contentId String
+  content   Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  hook      String?
+  script    String? // desarrollo / guion (reel) o slides serializados (carrusel)
+  caption   String?
+  cta       String?
+  hashtags  String?
+  raw       Json? // salida JSON completa devuelta por la IA, para depuración/reuso
+  createdAt DateTime @default(now())
+
+  @@map("content_versions")
+}
+
+// Metadata del análisis de IA (no el texto original, solo el diagnóstico).
+model Analysis {
+  id            String    @id @default(cuid())
+  contentId     String
+  content       Content   @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  riskLevel     RiskLevel
+  summary       String? // explicación breve y amigable del riesgo
+  model         String // qué modelo de IA se usó
+  promptVersion String // versionado del prompt usado, para trazabilidad
+  createdAt     DateTime  @default(now())
+
+  @@map("analysis")
+}
+
+// Un dato detectado y qué se hizo con él. Se guarda el TIPO y la ACCIÓN,
+// nunca el valor identificable original.
+model PrivacyFlag {
+  id         String   @id @default(cuid())
+  contentId  String
+  content    Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  category   String // nombre | edad | institucion | ubicacion | fecha | relacion | otro
+  action     String // eliminado | generalizado
+  replacement String? // ej: "una niña en edad escolar" (el texto sustituto, no el original)
+  createdAt  DateTime @default(now())
+
+  @@map("privacy_flags")
+}
+
+model Subscription {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan      Plan     @default(FREE)
+  provider  String? // "stripe" a futuro; null mientras no haya pagos
+  externalId String?
+  status    String   @default("active")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("subscriptions")
+}
+
+// Contador de uso por período, para aplicar límites de plan (FREE/PRO/PREMIUM).
+model Usage {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  period    String // "2026-08" (año-mes)
+  analyses  Int      @default(0)
+  generations Int    @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, period])
+  @@map("usage")
+}
+
+model Settings {
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  language            String   @default("es")
+  autoDeleteRawInput  Boolean  @default(true) // borra input crudo apenas se desidentifica
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@map("settings")
+}

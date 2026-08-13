@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  Identidad visual de CASUS.
+
+  Concepto: "consultorio silencioso" — la calma clínica de un consultorio
+  bien llevado, no el brillo de una app de moda. Fondo casi blanco con un
+  dejo verdoso (papel, no plástico), un verde petróleo profundo para
+  autoridad/confianza, y un solo acento cálido (ámbar) reservado
+  exclusivamente para el momento de "protección de identidad" — así ese
+  momento se siente distinto a todo lo demás en la app.
+
+  Color
+    --bg:        #F7F8F6  (blanco hueso, no cream/terracota genérico)
+    --surface:   #FFFFFF
+    --ink:       #16231F  (texto principal, casi negro con base verde)
+    --ink-muted: #5B6B65
+    --primary:   #0E3B36  (verde petróleo profundo — autoridad clínica)
+    --primary-soft: #E4EEEA
+    --accent:    #C97A2B  (ámbar tierra — SOLO para hallazgos de privacidad)
+    --accent-soft: #FBEEE0
+    --line:      #DEE3E0
+
+  Tipografía
+    Display: "Fraunces" (serif con carácter, transmite criterio profesional,
+      no una IA genérica) — usada con moderación en titulares.
+    Body/UI: "Inter" — utilitaria, muy legible en pantallas chicas.
+    Data/mono: "IBM Plex Mono" — para los fragmentos de texto detectado
+      en la pantalla de desidentificación (se leen como "evidencia").
+*/
+
+:root {
+  --bg: #f7f8f6;
+  --surface: #ffffff;
+  --ink: #16231f;
+  --ink-muted: #5b6b65;
+  --primary: #0e3b36;
+  --primary-soft: #e4eeea;
+  --accent: #c97a2b;
+  --accent-soft: #fbeee0;
+  --line: #dee3e0;
+  --danger: #b3432b;
+  --danger-soft: #f7e6e1;
+  --ok: #2f7a5c;
+  --ok-soft: #e2f0e9;
+  --warn: #b3862b;
+  --warn-soft: #f6efdc;
+}
+
+@font-face {
+  font-family: "Fraunces";
+  src: local("Fraunces");
+  font-display: swap;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+body {
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+.font-display {
+  font-family: "Fraunces", ui-serif, Georgia, serif;
+  font-optical-sizing: auto;
+}
+
+.font-mono-data {
+  font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+*:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
