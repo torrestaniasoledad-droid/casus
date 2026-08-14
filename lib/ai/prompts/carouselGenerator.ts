@@ -21,6 +21,9 @@ ${Object.entries(OBJECTIVE_GUIDANCE)
 
 Cada slide debe poder leerse en pocos segundos (no son párrafos largos).
 
+Las hashtags (5 a 8) tienen que empezar con el símbolo #, sin espacios adentro (ej:
+"#fonoaudiologia", nunca "fonoaudiologia" ni "fono audiologia").
+
 También sugerí una idea visual general para todo el carrusel (visual_suggestion): qué
 estilo de imagen o fondo usar en cada slide, pensado para armar en Canva sin diseñador.
 ${VISUAL_DIRECTION_GUIDANCE}

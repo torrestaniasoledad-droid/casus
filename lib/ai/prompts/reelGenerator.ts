@@ -22,7 +22,9 @@ Estructura esperada:
 - spoken_text: el texto tal como se diría en cámara, de corrido, listo para grabar.
 - cta: una frase de cierre acorde al objetivo.
 - caption: el texto para acompañar la publicación (2-4 oraciones).
-- hashtags: 5 a 8 hashtags relevantes en español, sin el símbolo # repetido de forma rara.
+- hashtags: 5 a 8 hashtags relevantes en español. Cada uno tiene que empezar con el
+  símbolo #, sin espacios adentro (ej: "#fonoaudiologia", nunca "fonoaudiologia" ni
+  "fono audiologia").
 - visual_suggestion: una idea concreta de qué grabar o mostrar en cámara para este Reel.
 ${VISUAL_DIRECTION_GUIDANCE}
 `.trim(),

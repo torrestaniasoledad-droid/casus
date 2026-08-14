@@ -8,6 +8,7 @@ import { toUserFacingError } from "@/lib/errors";
 import { PLAN_LIMITS, currentPeriod } from "@/lib/plans";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { assertEnv } from "@/lib/env";
+import { ensureHashtagSymbols } from "@/lib/hashtags";
 
 const generateSchema = z.object({
   contentId: z.string().min(1),
@@ -24,25 +25,25 @@ function toVersionFields(format: ContentFormat, data: any) {
   switch (format) {
     case "REEL":
       return {
-        title: truncate(data.hook, 55),
+        title: truncate(data.hook, 90),
         hook: data.hook,
         script: data.script,
         caption: data.caption,
         cta: data.cta,
-        hashtags: data.hashtags.join(" "),
+        hashtags: ensureHashtagSymbols(data.hashtags).join(" "),
       };
     case "CARRUSEL":
       return {
-        title: truncate(data.slides[0], 55),
+        title: truncate(data.slides[0], 90),
         hook: data.slides[0],
         script: JSON.stringify(data.slides),
         caption: data.caption,
         cta: data.cta,
-        hashtags: data.hashtags.join(" "),
+        hashtags: ensureHashtagSymbols(data.hashtags).join(" "),
       };
     case "STORIES":
       return {
-        title: truncate(data.stories[0], 55),
+        title: truncate(data.stories[0], 90),
         hook: data.stories[0],
         script: JSON.stringify(data.stories),
         caption: null as string | null,
@@ -51,12 +52,12 @@ function toVersionFields(format: ContentFormat, data: any) {
       };
     case "POST":
       return {
-        title: truncate(data.hook, 55),
+        title: truncate(data.hook, 90),
         hook: data.hook,
         script: data.desarrollo,
         caption: data.caption,
         cta: data.cta,
-        hashtags: data.hashtags.join(" "),
+        hashtags: ensureHashtagSymbols(data.hashtags).join(" "),
       };
   }
 }

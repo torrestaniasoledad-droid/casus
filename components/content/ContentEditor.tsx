@@ -134,7 +134,7 @@ export function ContentEditor(props: Props) {
         <textarea
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          rows={2}
+          rows={4}
           className="w-full resize-y rounded-md border border-line px-3 py-2 text-sm focus:border-primary outline-none"
         />
       </div>
@@ -162,7 +162,7 @@ export function ContentEditor(props: Props) {
       {props.format !== "STORIES" && (
         <div>
           <label className="block text-xs text-ink-muted uppercase tracking-wide mb-1">
-            Caption
+            Copy
           </label>
           <textarea
             value={caption}

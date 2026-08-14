@@ -19,6 +19,9 @@ ${Object.entries(OBJECTIVE_GUIDANCE)
   .map(([k, v]) => `- ${k}: ${v}`)
   .join("\n")}
 
+Las hashtags (5 a 8) tienen que empezar con el símbolo #, sin espacios adentro (ej:
+"#fonoaudiologia", nunca "fonoaudiologia" ni "fono audiologia").
+
 Sugerí también una idea visual (visual_suggestion) para la imagen única del post.
 ${VISUAL_DIRECTION_GUIDANCE}
 `.trim(),

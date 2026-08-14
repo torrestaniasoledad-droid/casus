@@ -50,7 +50,7 @@ export default async function ContentDetailPage({ params }: { params: { id: stri
           {content.objective ? OBJECTIVE_LABEL[content.objective] : "Sin objetivo"} ·{" "}
           {content.createdAt.toLocaleDateString("es-AR", { day: "2-digit", month: "short", year: "numeric" })}
         </div>
-        <h1 className="font-display text-2xl text-ink line-clamp-2">
+        <h1 className="font-display text-2xl text-ink line-clamp-3">
           {content.title ?? "Contenido sin título"}
         </h1>
       </div>

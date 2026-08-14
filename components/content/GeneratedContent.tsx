@@ -1,6 +1,7 @@
 import { Lightbulb } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import type { Format } from "./ObjectiveFormatPicker";
+import { ensureHashtagSymbols } from "@/lib/hashtags";
 
 function Field({ label, value }: { label: string; value: string }) {
   return (
@@ -40,8 +41,8 @@ export function GeneratedContent({ format, data }: { format: Format; data: any }
         <Field label="Guion" value={data.script} />
         <Field label="Texto hablado" value={data.spoken_text} />
         <Field label="CTA" value={data.cta} />
-        <Field label="Caption" value={data.caption} />
-        <Field label="Hashtags" value={data.hashtags.join(" ")} />
+        <Field label="Copy" value={data.caption} />
+        <Field label="Hashtags" value={ensureHashtagSymbols(data.hashtags).join(" ")} />
         <VisualSuggestion points={data.visual_suggestion} />
       </Card>
     );
@@ -64,8 +65,8 @@ export function GeneratedContent({ format, data }: { format: Format; data: any }
           </div>
         </div>
         <Field label="CTA" value={data.cta} />
-        <Field label="Caption" value={data.caption} />
-        <Field label="Hashtags" value={data.hashtags.join(" ")} />
+        <Field label="Copy" value={data.caption} />
+        <Field label="Hashtags" value={ensureHashtagSymbols(data.hashtags).join(" ")} />
         <VisualSuggestion points={data.visual_suggestion} />
       </Card>
     );
@@ -99,8 +100,8 @@ export function GeneratedContent({ format, data }: { format: Format; data: any }
       <Field label="Hook" value={data.hook} />
       <Field label="Desarrollo" value={data.desarrollo} />
       <Field label="CTA" value={data.cta} />
-      <Field label="Caption" value={data.caption} />
-      <Field label="Hashtags" value={data.hashtags.join(" ")} />
+      <Field label="Copy" value={data.caption} />
+      <Field label="Hashtags" value={ensureHashtagSymbols(data.hashtags).join(" ")} />
       <VisualSuggestion points={data.visual_suggestion} />
     </Card>
   );
