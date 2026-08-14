@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/db/prisma";
 import { checkRateLimit } from "@/lib/rateLimit";
+import { sendWelcomeEmail } from "@/lib/email";
 
 const registerSchema = z.object({
   email: z.string().email("Ingresá un email válido.").max(200),
@@ -54,6 +55,7 @@ export async function POST(req: Request) {
         settings: { create: {} },
       },
     });
+    await sendWelcomeEmail(user.email, user.email.split("@")[0]);
 
     return NextResponse.json({ id: user.id, email: user.email }, { status: 201 });
   } catch {
