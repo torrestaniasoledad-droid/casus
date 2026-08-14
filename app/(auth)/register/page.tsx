@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { CasusLogo } from "@/components/ui/CasusLogo";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -63,14 +64,12 @@ export default function RegisterPage() {
           </div>
           <div>
             <label className="block text-sm mb-1.5 text-ink">Contraseña</label>
-            <input
-              type="password"
-              required
-              minLength={8}
+            <PasswordInput
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-md border border-line px-3 py-2 text-sm focus:border-primary outline-none"
+              onChange={setPassword}
+              minLength={8}
               placeholder="Mínimo 8 caracteres"
+              autoComplete="new-password"
             />
           </div>
 

@@ -1,12 +1,13 @@
 import { CasusLogo } from "@/components/ui/CasusLogo";
 import Link from "next/link";
-import { PenLine, FolderOpen, LayoutGrid, UserRound } from "lucide-react";
+import { PenLine, FolderOpen, LayoutGrid, UserRound, CreditCard } from "lucide-react";
 import { MobileNav } from "./MobileNav";
 
 const NAV = [
   { href: "/dashboard", label: "Inicio", icon: LayoutGrid },
   { href: "/dashboard/create", label: "Crear contenido", icon: PenLine },
   { href: "/dashboard/library", label: "Biblioteca", icon: FolderOpen },
+  { href: "/dashboard/plans", label: "Planes", icon: CreditCard },
   { href: "/dashboard/profile", label: "Perfil", icon: UserRound },
 ];
 

@@ -92,6 +92,53 @@ npm test                # corre la suite de Vitest
 
 ## Mejoras post-lanzamiento
 
+- **Límite de Premium ya no es infinito**: era `Infinity` literal, sin ningún techo — si alguien
+  abusaba del uso (o un bug disparaba llamadas repetidas), el costo de la IA para ese usuario
+  no tenía freno. Ahora es 500 análisis + 1000 generaciones por mes: en la práctica muy por
+  encima de lo que cualquier usuario real usa, pero protege el margen ante un caso extremo.
+
+### Pantalla de Planes
+
+`/dashboard/plans` (`lib/planPricing.ts` + `app/dashboard/plans/page.tsx`) ya muestra los 3
+planes con precio, beneficios y cuál es el plan actual del usuario — accesible desde el
+sidebar y desde una tarjeta en el Perfil. El botón de los planes pagos está a propósito
+**deshabilitado** ("Disponible pronto") en vez de simular un pago que no existe: hasta que
+se conecte Mercado Pago, nadie puede quedar cobrado por error ni confundido pensando que ya
+contrató un plan.
+
+### Decisión de precios (pendiente de conectar el cobro)
+
+Con los precios actuales de la API de Anthropic, cada análisis o generación cuesta
+aproximadamente USD 0,015-0,017 (~$24 ARS al dólar de agosto 2026, ~$1.500). Precios
+acordados:
+
+- **Free**: $0 — 5 análisis + 10 generaciones/mes (ya funciona).
+- **Pro**: USD 7/mes — 60 análisis + 150 generaciones/mes (210 usos máximo). Costo de IA
+  en el peor caso (uso al 100% del límite): 210 × USD 0,016 ≈ USD 3,40. Comisión de Mercado
+  Pago (~7% con IVA): ~USD 0,49. **Margen incluso en el peor caso: ~USD 3,11/mes.**
+- **Premium**: USD 19/mes — 500 análisis + 500 generaciones/mes (1.000 usos máximo; se
+  bajó de 1000 generaciones originales porque a ese volumen el costo de IA en el peor caso
+  superaba el precio). Costo de IA en el peor caso: 1.000 × USD 0,016 = USD 16,00. Comisión
+  de Mercado Pago: ~USD 1,33. **Margen incluso en el peor caso: ~USD 1,67/mes.**
+
+Nota: Mercado Pago cobra en pesos, no en dólares — estos montos en USD son de referencia
+para pensar el margen sin que la inflación argentina distorsione la cuenta. El cobro real al
+usuario se hace en ARS, al tipo de cambio del momento (por eso conviene revisar el monto en
+pesos cada 2-3 meses, no dejarlo fijo).
+
+**Pendiente para cuando se conecte el cobro real:**
+- Plataforma: **Mercado Pago**, no Stripe — Stripe no admite Argentina como país de negocio
+  (se puede confirmar en support.stripe.com/questions/stripe-feature-availability-by-country).
+  La comisión de Mercado Pago ya está restada en los márgenes de arriba.
+- Estos precios en ARS **hay que revisarlos cada 2-3 meses** — con inflación ~30% anual, un
+  precio fijo en pesos se desactualiza rápido. No conviene hardcodearlos de forma permanente;
+  lo ideal es guardarlos en una tabla/config editable, no en el código.
+- Costos fijos de infraestructura (Vercel, Neon) hoy están en plan gratuito — si CASUS crece
+  mucho en usuarios, en algún momento pasan a ser un costo mensual fijo a sumar a la cuenta,
+  aparte del costo variable por uso de IA.
+
+## Qué agrega la Etapa 5
+
 - **Más profesiones**: el onboarding ahora ofrece fonoaudiología, psicología, nutrición,
   kinesiología, medicina, odontología, psicopedagogía y terapia ocupacional — sin tocar el
   esquema de base de datos, tal como estaba pensado desde la Etapa 1 (`profession` es texto

@@ -1,14 +1,19 @@
 import type { Plan } from "@prisma/client";
 
 /**
- * Límites mensuales por plan. Sin integración de pagos todavía (sección 15
- * del brief): esto solo sirve para que el plan FREE tenga un tope real y la
- * lógica de "excedido tu límite" ya funcione de punta a punta.
+ * Límites mensuales por plan.
+ *
+ * PREMIUM NO es infinito a propósito: un tope alto (pero finito) protege el
+ * margen ante un usuario que abuse del uso o un error/bug que dispare
+ * llamadas repetidas — sin eso, el costo de la IA para ese usuario no tiene
+ * techo. 500 análisis + 1000 generaciones por mes es, en la práctica, muy
+ * por encima de lo que cualquier usuario real llega a usar (serían ~16
+ * análisis Y ~33 generaciones por día, todos los días del mes).
  */
 export const PLAN_LIMITS: Record<Plan, { analyses: number; generations: number }> = {
   FREE: { analyses: 5, generations: 10 },
   PRO: { analyses: 60, generations: 150 },
-  PREMIUM: { analyses: Infinity, generations: Infinity },
+  PREMIUM: { analyses: 500, generations: 500 },
 };
 
 export function currentPeriod(date = new Date()): string {
