@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { mpFetch, assertMercadoPagoEnv } from "@/lib/mercadopago";
 import type { Plan } from "@prisma/client";
-
+import { sendPaymentConfirmationEmail } from "@/lib/email";
 /**
  * Mercado Pago llama a esta URL cada vez que cambia el estado de una
  * suscripción (autorizada, pausada, cancelada). Importante por seguridad:
@@ -87,6 +87,13 @@ export async function POST(req: Request) {
         status: preapproval.status,
       },
     });
+    if (newPlan !== "FREE") {
+      await sendPaymentConfirmationEmail(
+        user.email,
+        (user as any).name ?? "colega",
+        newPlan === "PRO" ? "Pro" : "Premium"
+      );
+    }
 
     return NextResponse.json({ ok: true });
   } catch (err) {
