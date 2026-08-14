@@ -22,7 +22,8 @@
     "zod": "^3.23.8",
     "@anthropic-ai/sdk": "^0.27.0",
     "clsx": "^2.1.1",
-    "lucide-react": "^0.417.0"
+    "lucide-react": "^0.417.0",
+    "resend": "^4.0.0"
   },
   "devDependencies": {
     "prisma": "^5.18.0",
