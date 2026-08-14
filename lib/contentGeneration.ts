@@ -20,6 +20,7 @@ const reelSchema = z.object({
   cta: z.string().min(1),
   caption: z.string().min(1),
   hashtags: z.array(z.string()).min(1),
+  visual_suggestion: z.array(z.string().min(1)).min(2).max(6),
 });
 
 const carouselSchema = z.object({
@@ -27,11 +28,13 @@ const carouselSchema = z.object({
   caption: z.string().min(1),
   hashtags: z.array(z.string()).min(1),
   cta: z.string().min(1),
+  visual_suggestion: z.array(z.string().min(1)).min(2).max(6),
 });
 
 const storiesSchema = z.object({
   stories: z.array(z.string().min(1)).length(4),
   cta: z.string().min(1),
+  visual_suggestion: z.array(z.string().min(1)).min(2).max(6),
 });
 
 const postSchema = z.object({
@@ -40,6 +43,7 @@ const postSchema = z.object({
   cta: z.string().min(1),
   caption: z.string().min(1),
   hashtags: z.array(z.string()).min(1),
+  visual_suggestion: z.array(z.string().min(1)).min(2).max(6),
 });
 
 const FORMAT_CONFIG: Record<

@@ -1,6 +1,6 @@
 import type { PromptDefinition } from "./types";
 import { BASE_CLINICAL_RULES } from "./types";
-import { OBJECTIVE_GUIDANCE } from "./contentStrategy";
+import { OBJECTIVE_GUIDANCE, VISUAL_DIRECTION_GUIDANCE } from "./contentStrategy";
 
 export const carouselGeneratorPrompt: PromptDefinition = {
   id: "carouselGenerator.v1",
@@ -20,6 +20,10 @@ ${Object.entries(OBJECTIVE_GUIDANCE)
   .join("\n")}
 
 Cada slide debe poder leerse en pocos segundos (no son párrafos largos).
+
+También sugerí una idea visual general para todo el carrusel (visual_suggestion): qué
+estilo de imagen o fondo usar en cada slide, pensado para armar en Canva sin diseñador.
+${VISUAL_DIRECTION_GUIDANCE}
 `.trim(),
   inputShape: `{
   "clinical_learning": string,
@@ -31,7 +35,8 @@ Cada slide debe poder leerse en pocos segundos (no son párrafos largos).
   "slides": string[],
   "caption": string,
   "hashtags": string[],
-  "cta": string
+  "cta": string,
+  "visual_suggestion": string[]  // 3 a 5 puntos cortos
 }`,
   rules: [
     ...BASE_CLINICAL_RULES,

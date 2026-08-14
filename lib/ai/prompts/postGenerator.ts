@@ -1,6 +1,6 @@
 import type { PromptDefinition } from "./types";
 import { BASE_CLINICAL_RULES } from "./types";
-import { OBJECTIVE_GUIDANCE } from "./contentStrategy";
+import { OBJECTIVE_GUIDANCE, VISUAL_DIRECTION_GUIDANCE } from "./contentStrategy";
 
 export const postGeneratorPrompt: PromptDefinition = {
   id: "postGenerator.v1",
@@ -18,6 +18,9 @@ Guía según el objetivo:
 ${Object.entries(OBJECTIVE_GUIDANCE)
   .map(([k, v]) => `- ${k}: ${v}`)
   .join("\n")}
+
+Sugerí también una idea visual (visual_suggestion) para la imagen única del post.
+${VISUAL_DIRECTION_GUIDANCE}
 `.trim(),
   inputShape: `{
   "clinical_learning": string,
@@ -30,7 +33,8 @@ ${Object.entries(OBJECTIVE_GUIDANCE)
   "desarrollo": string,
   "cta": string,
   "caption": string,
-  "hashtags": string[]
+  "hashtags": string[],
+  "visual_suggestion": string[]  // 3 a 5 puntos cortos
 }`,
   rules: [
     ...BASE_CLINICAL_RULES,

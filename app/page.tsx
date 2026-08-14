@@ -1,11 +1,15 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
+import { CasusLogo } from "@/components/ui/CasusLogo";
 
 export default function LandingPage() {
   return (
     <main className="min-h-screen flex flex-col">
       <header className="flex items-center justify-between px-6 py-6 md:px-12">
-        <span className="font-display text-xl text-primary">CASUS</span>
+        <span className="flex items-center gap-1.5 font-display text-xl text-primary">
+          <CasusLogo size={26} />
+          CASUS
+        </span>
         <Link href="/login">
           <Button variant="secondary" size="sm">
             Iniciar sesión

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { PenLine, Mic, Loader2 } from "lucide-react";
+import { PenLine, Mic, MicOff, Loader2 } from "lucide-react";
 import { PrivacyReview, type DetectedItem } from "@/components/content/PrivacyReview";
 import { RiskSummary } from "@/components/content/RiskSummary";
 import {
@@ -12,6 +12,7 @@ import {
   type Format,
 } from "@/components/content/ObjectiveFormatPicker";
 import { GeneratedContent } from "@/components/content/GeneratedContent";
+import { useSpeechToText } from "@/lib/useSpeechToText";
 
 type Mode = "escribir" | "dictar";
 type AnalyzeStage = "idle" | "analyzing" | "protecting" | "learning" | "done" | "error";
@@ -46,6 +47,9 @@ interface AnalysisResult {
 export default function CreateContentPage() {
   const [mode, setMode] = useState<Mode>("escribir");
   const [text, setText] = useState("");
+  const speech = useSpeechToText((finalText) => {
+    setText((prev) => (prev ? `${prev.trim()} ${finalText}` : finalText));
+  });
   const [analyzeStage, setAnalyzeStage] = useState<AnalyzeStage>("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [result, setResult] = useState<AnalysisResult | null>(null);
@@ -179,17 +183,50 @@ export default function CreateContentPage() {
                 placeholder="Ej: Hoy atendí a una nena de 7 años que..."
                 className="w-full min-h-[220px] resize-none p-4 text-sm outline-none disabled:bg-surface disabled:text-ink-muted"
               />
-            ) : (
+            ) : !speech.isSupported ? (
               <div className="min-h-[220px] flex flex-col items-center justify-center text-center p-6 text-sm text-ink-muted">
-                <Mic size={28} className="mb-3 text-ink-muted" />
-                El dictado por voz se habilita en una próxima etapa. Por ahora, escribí tu
+                <MicOff size={28} className="mb-3 text-ink-muted" />
+                Tu navegador no soporta el dictado por voz. Probá con Chrome, o escribí tu
                 experiencia con la otra opción.
+              </div>
+            ) : (
+              <div className="p-4">
+                <textarea
+                  value={speech.interimText ? `${text} ${speech.interimText}`.trim() : text}
+                  onChange={(e) => setText(e.target.value)}
+                  disabled={isBusyAnalyzing}
+                  maxLength={4000}
+                  placeholder="Tocá el micrófono y empezá a hablar..."
+                  className="w-full min-h-[160px] resize-none text-sm outline-none disabled:text-ink-muted"
+                />
+                <div className="flex justify-center pt-3 border-t border-line mt-3">
+                  <button
+                    type="button"
+                    onClick={() => (speech.isRecording ? speech.stop() : speech.start())}
+                    disabled={isBusyAnalyzing}
+                    className={`flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-colors ${
+                      speech.isRecording
+                        ? "bg-danger text-white animate-pulse"
+                        : "bg-primary text-white hover:bg-primary/90"
+                    } disabled:opacity-50`}
+                  >
+                    <Mic size={18} />
+                    {speech.isRecording ? "Grabando... tocá para parar" : "Tocá para dictar"}
+                  </button>
+                </div>
+                {speech.error && (
+                  <p className="text-xs text-danger text-center mt-2">{speech.error}</p>
+                )}
+                <p className="text-xs text-ink-muted text-center mt-2">
+                  El dictado se procesa a través de tu navegador. Evitá decir nombres reales
+                  de pacientes en voz alta — podés escribirlos como "una niña" o "el
+                  paciente" y CASUS igual protege cualquier dato que se cuele.
+                </p>
               </div>
             )}
           </Card>
-          {mode === "escribir" && (
-            <div className="text-xs text-ink-muted text-right mt-1">{text.length}/4000</div>
-          )}
+          <div className="text-xs text-ink-muted text-right mt-1">{text.length}/4000</div>
+
 
           {errorMsg && (
             <p className="text-sm text-danger mt-3" role="alert">
@@ -200,7 +237,7 @@ export default function CreateContentPage() {
           <Button
             size="lg"
             className="mt-5"
-            disabled={mode !== "escribir" || text.trim().length === 0 || isBusyAnalyzing}
+            disabled={text.trim().length === 0 || isBusyAnalyzing || speech.isRecording}
             onClick={handleAnalyze}
           >
             {isBusyAnalyzing && <Loader2 size={16} className="animate-spin" />}

@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db/prisma";
 import { Card } from "@/components/ui/Card";
+import { PROFESSION_LABEL } from "@/lib/labels";
 
 const FIELD_LABEL: Record<string, string> = {
   displayName: "Nombre",
@@ -26,7 +27,9 @@ export default async function ProfilePage() {
             <div key={key} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
               <span className="text-sm text-ink-muted">{FIELD_LABEL[key]}</span>
               <span className="text-sm text-ink font-medium">
-                {(profile as any)[key] || "—"}
+                {key === "profession"
+                  ? PROFESSION_LABEL[(profile as any)[key]] ?? (profile as any)[key] ?? "—"
+                  : (profile as any)[key] || "—"}
               </span>
             </div>
           ))}

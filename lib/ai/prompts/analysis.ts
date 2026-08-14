@@ -14,8 +14,10 @@ export const analysisPrompt: PromptDefinition = {
   objective:
     "Detectar información potencialmente identificable en el relato de un profesional de la salud, desidentificarla, evaluar el nivel de riesgo residual y extraer el aprendizaje clínico general, en un solo paso.",
   instructions: `
-Vas a recibir el relato de un profesional de la salud (primer nicho: fonoaudiología)
-sobre una situación de su práctica profesional. Tu tarea tiene cuatro partes:
+Vas a recibir el relato de un profesional de la salud (fonoaudiología, psicología,
+nutrición, kinesiología, medicina, odontología, psicopedagogía, terapia ocupacional, u
+otra especialidad) sobre una situación de su práctica profesional. Tu tarea tiene cuatro
+partes:
 
 1. DETECCIÓN: identificá cualquier fragmento que podría ayudar a identificar a un
    paciente o tercero real: nombres propios, edades exactas, nombres de instituciones

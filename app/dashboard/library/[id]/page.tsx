@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/Card";
 import { RiskSummary } from "@/components/content/RiskSummary";
 import { ContentEditor } from "@/components/content/ContentEditor";
 import { FORMAT_LABEL, OBJECTIVE_LABEL } from "@/lib/labels";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, FileText } from "lucide-react";
 
 const CATEGORY_LABEL: Record<string, string> = {
   nombre: "Nombre",
@@ -47,12 +47,40 @@ export default async function ContentDetailPage({ params }: { params: { id: stri
       <div className="mb-6">
         <div className="text-xs text-ink-muted mb-1">
           {content.format ? FORMAT_LABEL[content.format] : "Sin formato"} ·{" "}
-          {content.objective ? OBJECTIVE_LABEL[content.objective] : "Sin objetivo"}
+          {content.objective ? OBJECTIVE_LABEL[content.objective] : "Sin objetivo"} ·{" "}
+          {content.createdAt.toLocaleDateString("es-AR", { day: "2-digit", month: "short", year: "numeric" })}
         </div>
-        <h1 className="font-display text-2xl text-ink">
+        <h1 className="font-display text-2xl text-ink line-clamp-2">
           {content.title ?? "Contenido sin título"}
         </h1>
       </div>
+
+      {content.deidentifiedInput && (
+        <details className="mb-5 group">
+          <summary className="flex items-center gap-2 cursor-pointer text-sm font-medium text-ink list-none select-none">
+            <FileText size={16} className="text-ink-muted" />
+            Ver lo que escribiste (ya protegido)
+            <span className="text-ink-muted text-xs ml-auto group-open:hidden">Mostrar</span>
+            <span className="text-ink-muted text-xs ml-auto hidden group-open:inline">Ocultar</span>
+          </summary>
+          <Card className="mt-2">
+            <p className="text-sm text-ink-muted whitespace-pre-wrap">{content.deidentifiedInput}</p>
+            {content.clinicalLearning && (
+              <>
+                <div className="text-xs text-ink-muted uppercase tracking-wide mt-4 mb-1">
+                  Aprendizaje extraído
+                </div>
+                <p className="text-sm text-ink-muted">{content.clinicalLearning}</p>
+              </>
+            )}
+            <p className="text-xs text-ink-muted mt-4 pt-3 border-t border-line">
+              Este es el texto ya desidentificado que usó CASUS — así podés revisar si te
+              olvidaste de algo. Por privacidad, el texto original que escribiste no queda
+              guardado.
+            </p>
+          </Card>
+        </details>
+      )}
 
       {content.riskLevel && (
         <div className="mb-5">
@@ -89,6 +117,7 @@ export default async function ContentDetailPage({ params }: { params: { id: stri
           caption={latest.caption}
           cta={latest.cta}
           hashtags={latest.hashtags}
+          createdAt={content.createdAt.toISOString()}
         />
       ) : (
         <Card className="text-sm text-ink-muted">

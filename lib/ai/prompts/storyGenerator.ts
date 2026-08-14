@@ -1,6 +1,6 @@
 import type { PromptDefinition } from "./types";
 import { BASE_CLINICAL_RULES } from "./types";
-import { OBJECTIVE_GUIDANCE } from "./contentStrategy";
+import { OBJECTIVE_GUIDANCE, VISUAL_DIRECTION_GUIDANCE } from "./contentStrategy";
 
 export const storyGeneratorPrompt: PromptDefinition = {
   id: "storyGenerator.v1",
@@ -21,6 +21,9 @@ ${Object.entries(OBJECTIVE_GUIDANCE)
   .join("\n")}
 
 Cada historia es texto corto (pensá en el espacio de una pantalla de celular), no un párrafo.
+
+Sugerí también una idea visual (visual_suggestion): qué mostrar de fondo en cada historia.
+${VISUAL_DIRECTION_GUIDANCE}
 `.trim(),
   inputShape: `{
   "clinical_learning": string,
@@ -30,7 +33,8 @@ Cada historia es texto corto (pensá en el espacio de una pantalla de celular), 
 }`,
   outputShape: `{
   "stories": string[],
-  "cta": string
+  "cta": string,
+  "visual_suggestion": string[]  // 3 a 5 puntos cortos
 }`,
   rules: [
     ...BASE_CLINICAL_RULES,

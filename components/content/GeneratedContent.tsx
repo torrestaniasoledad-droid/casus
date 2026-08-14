@@ -1,3 +1,4 @@
+import { Lightbulb } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import type { Format } from "./ObjectiveFormatPicker";
 
@@ -6,6 +7,27 @@ function Field({ label, value }: { label: string; value: string }) {
     <div>
       <div className="text-xs text-ink-muted uppercase tracking-wide mb-1">{label}</div>
       <p className="text-sm text-ink whitespace-pre-wrap">{value}</p>
+    </div>
+  );
+}
+
+function VisualSuggestion({ points }: { points: string[] }) {
+  return (
+    <div className="rounded-md bg-accent-soft/60 border border-accent/20 overflow-hidden">
+      <div className="flex items-center gap-2 px-3 pt-3 pb-2">
+        <Lightbulb size={16} className="text-accent shrink-0" />
+        <div className="text-xs text-accent uppercase tracking-wide font-medium">
+          Ideas para grabar/diseñar
+        </div>
+      </div>
+      <ul className="divide-y divide-accent/15">
+        {points.map((point, i) => (
+          <li key={i} className="flex gap-2 px-3 py-2 text-sm text-ink">
+            <span className="text-accent shrink-0">•</span>
+            <span>{point}</span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
@@ -20,6 +42,7 @@ export function GeneratedContent({ format, data }: { format: Format; data: any }
         <Field label="CTA" value={data.cta} />
         <Field label="Caption" value={data.caption} />
         <Field label="Hashtags" value={data.hashtags.join(" ")} />
+        <VisualSuggestion points={data.visual_suggestion} />
       </Card>
     );
   }
@@ -43,6 +66,7 @@ export function GeneratedContent({ format, data }: { format: Format; data: any }
         <Field label="CTA" value={data.cta} />
         <Field label="Caption" value={data.caption} />
         <Field label="Hashtags" value={data.hashtags.join(" ")} />
+        <VisualSuggestion points={data.visual_suggestion} />
       </Card>
     );
   }
@@ -64,6 +88,7 @@ export function GeneratedContent({ format, data }: { format: Format; data: any }
           </div>
         </div>
         <Field label="CTA" value={data.cta} />
+        <VisualSuggestion points={data.visual_suggestion} />
       </Card>
     );
   }
@@ -76,6 +101,7 @@ export function GeneratedContent({ format, data }: { format: Format; data: any }
       <Field label="CTA" value={data.cta} />
       <Field label="Caption" value={data.caption} />
       <Field label="Hashtags" value={data.hashtags.join(" ")} />
+      <VisualSuggestion points={data.visual_suggestion} />
     </Card>
   );
 }

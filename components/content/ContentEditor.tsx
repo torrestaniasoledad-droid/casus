@@ -15,6 +15,7 @@ interface Props {
   caption: string | null;
   cta: string | null;
   hashtags: string | null;
+  createdAt: string;
 }
 
 const SCRIPT_LABEL: Record<Props["format"], string> = {
@@ -117,14 +118,24 @@ export function ContentEditor(props: Props) {
 
   return (
     <Card className="flex flex-col gap-4">
+      <div className="text-xs text-ink-muted">
+        Creado el{" "}
+        {new Date(props.createdAt).toLocaleDateString("es-AR", {
+          day: "2-digit",
+          month: "long",
+          year: "numeric",
+        })}
+      </div>
+
       <div>
         <label className="block text-xs text-ink-muted uppercase tracking-wide mb-1">
           Título
         </label>
-        <input
+        <textarea
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="w-full rounded-md border border-line px-3 py-2 text-sm focus:border-primary outline-none"
+          rows={2}
+          className="w-full resize-y rounded-md border border-line px-3 py-2 text-sm focus:border-primary outline-none"
         />
       </div>
 
@@ -190,7 +201,7 @@ export function ContentEditor(props: Props) {
       )}
       {saved && <p className="text-sm text-ok">Cambios guardados.</p>}
 
-      <div className="flex items-center gap-2 pt-2 border-t border-line">
+      <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-line">
         <Button onClick={handleSave} disabled={saving}>
           <Save size={16} />
           {saving ? "Guardando..." : "Guardar cambios"}
@@ -203,7 +214,7 @@ export function ContentEditor(props: Props) {
           variant="ghost"
           onClick={handleDelete}
           disabled={busy}
-          className="text-danger hover:bg-danger-soft ml-auto"
+          className="text-danger hover:bg-danger-soft"
         >
           <Trash2 size={16} />
           Eliminar

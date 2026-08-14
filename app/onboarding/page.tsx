@@ -6,9 +6,18 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 
 // La lista de profesiones es SOLO datos de UI: agregar una nueva
-// profesión no requiere tocar el esquema de base de datos ni el backend.
+// profesión no requiere tocar el esquema de base de datos ni el backend
+// (ver /lib/ai/prompts — cada generador ya recibe "profession" como texto
+// libre y adapta el contenido en consecuencia).
 const PROFESSIONS = [
   { value: "fonoaudiologia", label: "Fonoaudiología / Logopedia" },
+  { value: "psicologia", label: "Psicología" },
+  { value: "nutricion", label: "Nutrición" },
+  { value: "kinesiologia", label: "Kinesiología / Fisioterapia" },
+  { value: "medicina", label: "Medicina" },
+  { value: "odontologia", label: "Odontología" },
+  { value: "psicopedagogia", label: "Psicopedagogía" },
+  { value: "terapia_ocupacional", label: "Terapia Ocupacional" },
 ];
 
 const GOALS = [

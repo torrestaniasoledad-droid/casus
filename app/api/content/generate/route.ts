@@ -24,7 +24,7 @@ function toVersionFields(format: ContentFormat, data: any) {
   switch (format) {
     case "REEL":
       return {
-        title: truncate(data.hook, 70),
+        title: truncate(data.hook, 55),
         hook: data.hook,
         script: data.script,
         caption: data.caption,
@@ -33,7 +33,7 @@ function toVersionFields(format: ContentFormat, data: any) {
       };
     case "CARRUSEL":
       return {
-        title: truncate(data.slides[0], 70),
+        title: truncate(data.slides[0], 55),
         hook: data.slides[0],
         script: JSON.stringify(data.slides),
         caption: data.caption,
@@ -42,7 +42,7 @@ function toVersionFields(format: ContentFormat, data: any) {
       };
     case "STORIES":
       return {
-        title: truncate(data.stories[0], 70),
+        title: truncate(data.stories[0], 55),
         hook: data.stories[0],
         script: JSON.stringify(data.stories),
         caption: null as string | null,
@@ -51,7 +51,7 @@ function toVersionFields(format: ContentFormat, data: any) {
       };
     case "POST":
       return {
-        title: truncate(data.hook, 70),
+        title: truncate(data.hook, 55),
         hook: data.hook,
         script: data.desarrollo,
         caption: data.caption,

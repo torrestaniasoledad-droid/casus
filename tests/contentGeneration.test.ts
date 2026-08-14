@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { FORMAT_SCHEMAS } from "@/lib/contentGeneration";
 
 describe("FORMAT_SCHEMAS.CARRUSEL", () => {
-  const base = { caption: "cap", hashtags: ["#a"], cta: "cta" };
+  const base = { caption: "cap", hashtags: ["#a"], cta: "cta", visual_suggestion: ["vs1", "vs2"] };
 
   it("acepta exactamente 7 slides", () => {
     const result = FORMAT_SCHEMAS.CARRUSEL.safeParse({
@@ -27,6 +27,27 @@ describe("FORMAT_SCHEMAS.CARRUSEL", () => {
     });
     expect(result.success).toBe(false);
   });
+
+  it("rechaza si falta visual_suggestion", () => {
+    const result = FORMAT_SCHEMAS.CARRUSEL.safeParse({
+      caption: "cap",
+      hashtags: ["#a"],
+      cta: "cta",
+      slides: Array.from({ length: 7 }, (_, i) => `slide ${i}`),
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rechaza visual_suggestion con un solo punto (mínimo 2)", () => {
+    const result = FORMAT_SCHEMAS.CARRUSEL.safeParse({
+      caption: "cap",
+      hashtags: ["#a"],
+      cta: "cta",
+      slides: Array.from({ length: 7 }, (_, i) => `slide ${i}`),
+      visual_suggestion: ["un solo punto"],
+    });
+    expect(result.success).toBe(false);
+  });
 });
 
 describe("FORMAT_SCHEMAS.STORIES", () => {
@@ -34,12 +55,17 @@ describe("FORMAT_SCHEMAS.STORIES", () => {
     const result = FORMAT_SCHEMAS.STORIES.safeParse({
       stories: ["a", "b", "c", "d"],
       cta: "cta",
+      visual_suggestion: ["vs1", "vs2"],
     });
     expect(result.success).toBe(true);
   });
 
   it("rechaza 3 historias", () => {
-    const result = FORMAT_SCHEMAS.STORIES.safeParse({ stories: ["a", "b", "c"], cta: "cta" });
+    const result = FORMAT_SCHEMAS.STORIES.safeParse({
+      stories: ["a", "b", "c"],
+      cta: "cta",
+      visual_suggestion: ["vs1", "vs2"],
+    });
     expect(result.success).toBe(false);
   });
 });
@@ -49,6 +75,19 @@ describe("FORMAT_SCHEMAS.REEL", () => {
     const result = FORMAT_SCHEMAS.REEL.safeParse({
       hook: "h",
       script: "s",
+      cta: "c",
+      caption: "cap",
+      hashtags: ["#a"],
+      visual_suggestion: ["vs1", "vs2"],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rechaza si falta visual_suggestion", () => {
+    const result = FORMAT_SCHEMAS.REEL.safeParse({
+      hook: "h",
+      script: "s",
+      spoken_text: "st",
       cta: "c",
       caption: "cap",
       hashtags: ["#a"],

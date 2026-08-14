@@ -1,6 +1,6 @@
 import type { PromptDefinition } from "./types";
 import { BASE_CLINICAL_RULES } from "./types";
-import { OBJECTIVE_GUIDANCE } from "./contentStrategy";
+import { OBJECTIVE_GUIDANCE, VISUAL_DIRECTION_GUIDANCE } from "./contentStrategy";
 
 export const reelGeneratorPrompt: PromptDefinition = {
   id: "reelGenerator.v1",
@@ -23,6 +23,8 @@ Estructura esperada:
 - cta: una frase de cierre acorde al objetivo.
 - caption: el texto para acompañar la publicación (2-4 oraciones).
 - hashtags: 5 a 8 hashtags relevantes en español, sin el símbolo # repetido de forma rara.
+- visual_suggestion: una idea concreta de qué grabar o mostrar en cámara para este Reel.
+${VISUAL_DIRECTION_GUIDANCE}
 `.trim(),
   inputShape: `{
   "clinical_learning": string,
@@ -36,7 +38,8 @@ Estructura esperada:
   "spoken_text": string,
   "cta": string,
   "caption": string,
-  "hashtags": string[]
+  "hashtags": string[],
+  "visual_suggestion": string[]  // 3 a 5 puntos cortos
 }`,
   rules: [
     ...BASE_CLINICAL_RULES,

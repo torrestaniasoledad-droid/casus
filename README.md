@@ -90,6 +90,54 @@ npm test                # corre la suite de Vitest
   planes, uso), pero no hay UI.
 - Tests end-to-end (Playwright/Cypress) — ver el porqué en la sección de Etapa 5 más abajo.
 
+## Mejoras post-lanzamiento
+
+- **Más profesiones**: el onboarding ahora ofrece fonoaudiología, psicología, nutrición,
+  kinesiología, medicina, odontología, psicopedagogía y terapia ocupacional — sin tocar el
+  esquema de base de datos, tal como estaba pensado desde la Etapa 1 (`profession` es texto
+  libre, no una tabla). Las etiquetas legibles ("Psicología" en vez de "psicologia") viven
+  centralizadas en `lib/labels.ts`.
+- **Idea visual en cada contenido generado**: los 4 generadores (Reel/Carrusel/Post/Stories)
+  ahora también devuelven `visual_suggestion` — una sugerencia concreta de qué grabar,
+  fotografiar o diseñar para acompañar el texto, pensada para alguien sin equipo ni
+  diseñador profesional. Se muestra en un recuadro destacado debajo del contenido generado.
+  Es un campo más dentro del mismo JSON que ya devuelve la IA — no agrega una llamada extra.
+- **Dictado por voz funcional** (`lib/useSpeechToText.ts`): usa la Web Speech API nativa del
+  navegador (no un servicio externo pago) — funciona bien en Chrome/Edge, parcialmente en
+  Safari, no en Firefox. El botón "Dictar" ahora graba y transcribe en vivo al mismo campo
+  de texto que "Escribir", con feedback visual mientras graba. Se actualizó la
+  `Permissions-Policy` en `next.config.js` para permitir el micrófono (antes estaba
+  bloqueado a propósito porque el dictado no existía).
+- **Ideas visuales a nivel experto**: la guía compartida `VISUAL_DIRECTION_GUIDANCE`
+  (`lib/ai/prompts/contentStrategy.ts`) eleva las sugerencias visuales de los 4 generadores
+  para que razonen como un estratega de contenido — encuadre, texto en pantalla, ritmo de
+  cortes, estilo — sin nombrar herramientas o tendencias de audio puntuales que se
+  desactualizan rápido.
+- **Logo de CASUS** (`components/ui/CasusLogo.tsx`): un monograma simple en SVG (sin
+  depender de un archivo de imagen externo) — un escudo que representa protección/privacidad,
+  coherente con el concepto del producto. Aparece junto al wordmark en el sidebar, el header
+  mobile, la landing y las pantallas de login/registro.
+- **Ideas visuales como lista, no párrafo**: `visual_suggestion` pasó de ser un texto único a
+  un array de 3-5 puntos cortos (`z.array(z.string()).min(2).max(6)` en los 4 schemas), y se
+  muestra como una lista con separadores — se lee mucho más rápido en el celular que un
+  bloque de texto corrido.
+- **Título editable sin scroll horizontal**: el campo "Título" en el editor pasó de `<input>`
+  (una sola línea, obligaba a scrollear para ver texto largo) a `<textarea>` de 2 líneas que
+  ajusta el texto visualmente. También se acortó el título automático que genera CASUS al
+  crear contenido (de 70 a 55 caracteres) para que entre mejor en pantallas chicas.
+- **Botón "Eliminar" ya no se corta en mobile**: la fila de botones del editor
+  (`Guardar/Duplicar/Eliminar`) usaba `ml-auto` para separar "Eliminar" a la derecha, lo que
+  lo empujaba fuera de la pantalla en mobile. Ahora la fila usa `flex-wrap`, así los botones
+  bajan a una segunda línea en vez de desbordar.
+- **Texto ya desidentificado visible en el detalle**: cada contenido ahora tiene un bloque
+  plegable ("Ver lo que escribiste, ya protegido") que muestra `deidentifiedInput` — el
+  texto que efectivamente usó CASUS para generar el contenido. Sirve para que el
+  profesional chequee si se olvidó de algo, sin tener que volver a escribir todo desde cero.
+  Importante: sigue sin guardarse el texto **original** (con nombres reales) — esto muestra
+  la versión ya protegida, coherente con el diseño de privacidad de la Etapa 2.
+- **Fecha de creación visible**: se agregó en el detalle del contenido y en el editor (antes
+  solo se veía en la tarjeta de la biblioteca).
+
 ## Qué agrega la Etapa 5
 
 **Testing** — suite de Vitest (`npm test`) cubriendo la lógica más crítica y menos visible a
@@ -190,6 +238,13 @@ biblioteca), un link de "saltar al contenido principal" para navegación por tec
   mensaje claro al superarlo.
 
 ## Riesgos técnicos a tener en cuenta
+
+- **Privacidad del dictado por voz**: en Chrome, la Web Speech API envía el audio a los
+  servidores de Google para transcribirlo (no se procesa solo en el dispositivo). Esto
+  significa que si un profesional dicta un caso con nombres reales antes de que CASUS lo
+  desidentifique, ese audio pasa por un tercero (Google) antes de llegar a CASUS. Vale la
+  pena sumar un aviso visible en la pantalla de dictado explicando esto, y evaluar si hace
+  falta mencionarlo en los términos de servicio cuando existan.
 
 - El rate limiter de la Etapa 5 es en memoria (un `Map` por proceso). Funciona para el MVP en
   un solo servidor, pero si CASUS corre en más de una instancia (por ejemplo, autoscaling),

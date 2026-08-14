@@ -1,3 +1,4 @@
+import { CasusLogo } from "@/components/ui/CasusLogo";
 import Link from "next/link";
 import { PenLine, FolderOpen, LayoutGrid, UserRound } from "lucide-react";
 import { MobileNav } from "./MobileNav";
@@ -26,7 +27,10 @@ export function DashboardShell({
       </a>
 
       <aside className="w-60 shrink-0 border-r border-line bg-surface px-4 py-6 hidden md:flex md:flex-col">
-        <div className="font-display text-xl text-primary px-2 mb-8">CASUS</div>
+        <div className="flex items-center gap-2 px-2 mb-8">
+          <CasusLogo size={26} />
+          <span className="font-display text-xl text-primary">CASUS</span>
+        </div>
         <nav className="flex flex-col gap-1" aria-label="Navegación principal">
           {NAV.map(({ href, label, icon: Icon }) => (
             <Link
@@ -46,7 +50,10 @@ export function DashboardShell({
 
       <div className="flex-1 flex flex-col min-w-0">
         <header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-line bg-surface sticky top-0 z-10">
-          <span className="font-display text-lg text-primary">CASUS</span>
+          <span className="flex items-center gap-1.5 font-display text-lg text-primary">
+            <CasusLogo size={22} />
+            CASUS
+          </span>
         </header>
 
         <main id="main-content" className="flex-1 px-4 py-6 pb-24 sm:px-6 sm:py-8 md:px-10 md:py-10 md:pb-10">
