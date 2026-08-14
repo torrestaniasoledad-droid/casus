@@ -4,12 +4,17 @@ import { prisma } from "@/lib/db/prisma";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { PLAN_PRICING } from "@/lib/planPricing";
+import { UpgradeButton } from "@/components/plans/UpgradeButton";
 import { Check } from "lucide-react";
 import clsx from "clsx";
 
 const ORDER: Array<keyof typeof PLAN_PRICING> = ["FREE", "PRO", "PREMIUM"];
 
-export default async function PlansPage() {
+export default async function PlansPage({
+  searchParams,
+}: {
+  searchParams: { checkout?: string };
+}) {
   const session = await getServerSession(authOptions);
   const userId = (session?.user as any)?.id;
   const subscription = await prisma.subscription.findUnique({ where: { userId } });
@@ -21,6 +26,15 @@ export default async function PlansPage() {
       <p className="text-ink-muted text-sm mb-6">
         Elegí el plan que mejor se adapte a cuánto contenido creás por mes.
       </p>
+
+      {searchParams.checkout === "success" && (
+        <Card className="mb-5 bg-primary-soft border-primary/15">
+          <p className="text-sm text-primary">
+            Estamos confirmando tu suscripción con Mercado Pago — puede tardar unos minutos
+            en reflejarse acá. Si tocaste "Autorizar" en Mercado Pago, ya está en camino.
+          </p>
+        </Card>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-3">
         {ORDER.map((planKey) => {
@@ -49,9 +63,12 @@ export default async function PlansPage() {
 
               <div className="mb-4">
                 <span className="font-display text-3xl text-ink">
-                  {plan.priceUsd === 0 ? "Gratis" : `USD ${plan.priceUsd}`}
+                  {plan.priceUsd === 0 ? "Gratis" : `$${plan.priceArs.toLocaleString("es-AR")}`}
                 </span>
-                {plan.priceUsd > 0 && <span className="text-sm text-ink-muted">/mes</span>}
+                {plan.priceUsd > 0 && <span className="text-sm text-ink-muted"> ARS/mes</span>}
+                {plan.priceUsd > 0 && (
+                  <div className="text-xs text-ink-muted">(≈ USD {plan.priceUsd}/mes)</div>
+                )}
               </div>
 
               <ul className="flex flex-col gap-2 mb-5 flex-1">
@@ -72,9 +89,7 @@ export default async function PlansPage() {
                   Plan gratuito
                 </Button>
               ) : (
-                <Button disabled className="w-full">
-                  Disponible pronto
-                </Button>
+                <UpgradeButton plan={planKey as "PRO" | "PREMIUM"} />
               )}
             </Card>
           );
@@ -82,8 +97,9 @@ export default async function PlansPage() {
       </div>
 
       <p className="text-xs text-ink-muted mt-6">
-        Los planes pagos todavía no se pueden contratar desde acá — estamos conectando el
-        cobro. El precio en pesos se define al tipo de cambio del momento.
+        El precio se cobra en pesos argentinos a través de Mercado Pago, con débito
+        automático mensual. Podés cancelar la suscripción cuando quieras desde tu cuenta de
+        Mercado Pago.
       </p>
     </div>
   );

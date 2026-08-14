@@ -165,7 +165,7 @@ model Subscription {
   userId    String   @unique
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   plan      Plan     @default(FREE)
-  provider  String? // "stripe" a futuro; null mientras no haya pagos
+  provider  String? // "mercadopago" una vez conectado el pago real; null mientras no haya pagos
   externalId String?
   status    String   @default("active")
   createdAt DateTime @default(now())

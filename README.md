@@ -97,6 +97,44 @@ npm test                # corre la suite de Vitest
   no tenía freno. Ahora es 500 análisis + 1000 generaciones por mes: en la práctica muy por
   encima de lo que cualquier usuario real usa, pero protege el margen ante un caso extremo.
 
+### Mercado Pago conectado
+
+Ya está integrado el cobro real, usando la API de **Suscripciones (preapproval)** de
+Mercado Pago — pagos recurrentes mensuales en ARS.
+
+- `lib/mercadopago.ts`: cliente mínimo por `fetch` a la API REST de Mercado Pago (sin sumar
+  la librería oficial como dependencia — la API de preapproval es simple y no la necesita).
+- `POST /api/checkout/create`: crea la suscripción en Mercado Pago y devuelve la URL a la que
+  hay que redirigir al usuario para que autorice el cobro. **No cambia el plan del usuario**
+  — eso es trabajo exclusivo del webhook, para que nadie pueda quedarse con un plan pago sin
+  haber autorizado el cobro de verdad.
+- `POST /api/webhooks/mercadopago`: recibe la notificación de Mercado Pago cuando cambia el
+  estado de una suscripción. **Nunca confía en el contenido de la notificación en sí** —
+  vuelve a consultar el estado real a la API de Mercado Pago con nuestro propio Access Token,
+  y actualiza el plan del usuario según esa respuesta (no según lo que llegó en el POST).
+  Esto evita que alguien pueda mandarle un POST falso a esta URL para auto-otorgarse un plan
+  pago. Cuando la suscripción se cancela o pausa, el usuario vuelve automáticamente a Free.
+- `components/plans/UpgradeButton.tsx`: botón cliente en `/dashboard/plans` que llama al
+  endpoint de checkout y redirige al usuario a Mercado Pago.
+- Variable de entorno nueva: `MERCADOPAGO_ACCESS_TOKEN` (la "Public Key" que también se
+  sacó no hace falta cargarla todavía — solo se usa para Checkout Bricks del lado del
+  cliente, y acá se usa el flujo de redirección, que no la necesita).
+
+**Configurar el webhook en Mercado Pago** (paso manual, una sola vez): en el panel de la
+aplicación CASUS en Mercado Pago Developers → "Webhooks", cargar la URL
+`https://casus-seven.vercel.app/api/webhooks/mercadopago` y suscribirse a los eventos de
+"Suscripciones" (preapproval).
+
+**Pendiente / a tener en cuenta:**
+- No hay pantalla para que el usuario cancele su suscripción *desde CASUS* — hoy tiene que
+  hacerlo desde su cuenta de Mercado Pago. Se podría agregar más adelante llamando a
+  `PUT /preapproval/{id}` con `status: "cancelled"`.
+- El monto se manda "hardcodeado" desde `lib/planPricing.ts` (`priceArs`) en cada llamada a
+  `/api/checkout/create` — si se actualiza el precio ahí, los checkouts nuevos ya usan el
+  precio nuevo, pero las suscripciones ya autorizadas siguen cobrando el monto con el que se
+  crearon (es como funciona cualquier suscripción: cambiar el precio no afecta a quien ya
+  está suscripto).
+
 ### Pantalla de Planes
 
 `/dashboard/plans` (`lib/planPricing.ts` + `app/dashboard/plans/page.tsx`) ya muestra los 3

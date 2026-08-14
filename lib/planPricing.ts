@@ -10,11 +10,12 @@ import { PLAN_LIMITS } from "./plans";
  */
 export const PLAN_PRICING: Record<
   Plan,
-  { name: string; priceUsd: number; tagline: string; features: string[] }
+  { name: string; priceUsd: number; priceArs: number; tagline: string; features: string[] }
 > = {
   FREE: {
     name: "Free",
     priceUsd: 0,
+    priceArs: 0,
     tagline: "Para probar CASUS sin compromiso.",
     features: [
       `${PLAN_LIMITS.FREE.analyses} análisis por mes`,
@@ -26,6 +27,7 @@ export const PLAN_PRICING: Record<
   PRO: {
     name: "Pro",
     priceUsd: 7,
+    priceArs: 10000,
     tagline: "Para quien publica contenido de forma regular.",
     features: [
       `${PLAN_LIMITS.PRO.analyses} análisis por mes`,
@@ -38,6 +40,7 @@ export const PLAN_PRICING: Record<
   PREMIUM: {
     name: "Premium",
     priceUsd: 19,
+    priceArs: 28000,
     tagline: "Para consultorios o profesionales muy activos en redes.",
     features: [
       `${PLAN_LIMITS.PREMIUM.analyses} análisis por mes`,
