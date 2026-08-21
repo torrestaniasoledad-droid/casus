@@ -5,7 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db/prisma";
 import { generateContent, type ContentFormat, type ContentObjective } from "@/lib/contentGeneration";
 import { toUserFacingError } from "@/lib/errors";
-import { PLAN_LIMITS, currentPeriod } from "@/lib/plans";
+import { getUsageLimit, currentPeriod } from "@/lib/plans";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { assertEnv } from "@/lib/env";
 import { ensureHashtagSymbols } from "@/lib/hashtags";
@@ -95,10 +95,11 @@ export async function POST(req: Request) {
   }
   const { contentId, objective, format } = parsedBody.data;
 
-  const [content, profile, subscription] = await Promise.all([
+  const [content, profile, subscription, user] = await Promise.all([
     prisma.content.findUnique({ where: { id: contentId } }),
     prisma.profile.findUnique({ where: { userId } }),
     prisma.subscription.findUnique({ where: { userId } }),
+    prisma.user.findUnique({ where: { id: userId }, select: { email: true } }),
   ]);
 
   // El contenido tiene que existir, pertenecerle al usuario, y ya haber
@@ -124,7 +125,7 @@ export async function POST(req: Request) {
     create: { userId, period },
     update: {},
   });
-  const limit = PLAN_LIMITS[plan].generations;
+  const limit = getUsageLimit(plan, user?.email, "generations");
   if (usage.generations >= limit) {
     return NextResponse.json(
       {

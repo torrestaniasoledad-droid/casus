@@ -5,7 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db/prisma";
 import { runAnalysis } from "@/lib/analysis";
 import { toUserFacingError } from "@/lib/errors";
-import { PLAN_LIMITS, currentPeriod } from "@/lib/plans";
+import { getUsageLimit, currentPeriod } from "@/lib/plans";
 import { analysisPrompt } from "@/lib/ai/prompts";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { assertEnv } from "@/lib/env";
@@ -60,9 +60,10 @@ export async function POST(req: Request) {
     );
   }
 
-  const [profile, subscription] = await Promise.all([
+  const [profile, subscription, user] = await Promise.all([
     prisma.profile.findUnique({ where: { userId } }),
     prisma.subscription.findUnique({ where: { userId } }),
+    prisma.user.findUnique({ where: { id: userId }, select: { email: true } }),
   ]);
 
   if (!profile) {
@@ -81,7 +82,7 @@ export async function POST(req: Request) {
     update: {},
   });
 
-  const limit = PLAN_LIMITS[plan].analyses;
+  const limit = getUsageLimit(plan, user?.email, "analyses");
   if (usage.analyses >= limit) {
     return NextResponse.json(
       {

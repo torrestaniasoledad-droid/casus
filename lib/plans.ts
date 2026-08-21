@@ -19,3 +19,34 @@ export const PLAN_LIMITS: Record<Plan, { analyses: number; generations: number }
 export function currentPeriod(date = new Date()): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 }
+
+/**
+ * Emails con uso ilimitado (sin tope de plan), pensados para cuentas
+ * internas/dueños del producto que necesitan usar CASUS sin restricciones.
+ * Se configuran vía la variable de entorno UNLIMITED_USER_EMAILS (lista
+ * separada por comas) en vez de hardcodearse en el código, para no dejar un
+ * email personal expuesto en el repo.
+ */
+function unlimitedEmails(): Set<string> {
+  return new Set(
+    (process.env.UNLIMITED_USER_EMAILS ?? "")
+      .split(",")
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean)
+  );
+}
+
+export function isUnlimitedUser(email: string | null | undefined): boolean {
+  if (!email) return false;
+  return unlimitedEmails().has(email.toLowerCase());
+}
+
+/** Límite efectivo para un usuario: Infinity si su email está en UNLIMITED_USER_EMAILS. */
+export function getUsageLimit(
+  plan: Plan,
+  email: string | null | undefined,
+  kind: "analyses" | "generations"
+): number {
+  if (isUnlimitedUser(email)) return Infinity;
+  return PLAN_LIMITS[plan][kind];
+}
