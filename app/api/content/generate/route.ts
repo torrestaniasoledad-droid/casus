@@ -16,16 +16,18 @@ const generateSchema = z.object({
   format: z.enum(["REEL", "CARRUSEL", "POST", "STORIES"]),
 });
 
-function truncate(text: string, max: number): string {
-  return text.length > max ? `${text.slice(0, max - 1).trimEnd()}…` : text;
-}
-
-/** Normaliza la salida (distinta por formato) a las columnas fijas de ContentVersion. */
+/**
+ * Normaliza la salida (distinta por formato) a las columnas fijas de
+ * ContentVersion. El título se guarda completo (sin recortar a un largo
+ * fijo) para que la vista de detalle pueda mostrarlo entero; las vistas en
+ * grilla (biblioteca) recortan visualmente con CSS si hace falta, sin tocar
+ * el dato guardado.
+ */
 function toVersionFields(format: ContentFormat, data: any) {
   switch (format) {
     case "REEL":
       return {
-        title: truncate(data.hook, 90),
+        title: data.hook,
         hook: data.hook,
         script: data.script,
         caption: data.caption,
@@ -34,7 +36,7 @@ function toVersionFields(format: ContentFormat, data: any) {
       };
     case "CARRUSEL":
       return {
-        title: truncate(data.slides[0], 90),
+        title: data.slides[0],
         hook: data.slides[0],
         script: JSON.stringify(data.slides),
         caption: data.caption,
@@ -43,7 +45,7 @@ function toVersionFields(format: ContentFormat, data: any) {
       };
     case "STORIES":
       return {
-        title: truncate(data.stories[0], 90),
+        title: data.stories[0],
         hook: data.stories[0],
         script: JSON.stringify(data.stories),
         caption: null as string | null,
@@ -52,7 +54,7 @@ function toVersionFields(format: ContentFormat, data: any) {
       };
     case "POST":
       return {
-        title: truncate(data.hook, 90),
+        title: data.hook,
         hook: data.hook,
         script: data.desarrollo,
         caption: data.caption,
