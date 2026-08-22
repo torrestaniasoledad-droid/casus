@@ -50,3 +50,15 @@ export function getUsageLimit(
   if (isUnlimitedUser(email)) return Infinity;
   return PLAN_LIMITS[plan][kind];
 }
+
+/**
+ * La integración con Google Drive/Sheets es exclusiva de Pro/Premium (el
+ * calendario/checklist editorial en sí es gratis para todos los planes;
+ * esto solo gatea la sincronización externa). Las cuentas en
+ * UNLIMITED_USER_EMAILS también la tienen habilitada, mismo criterio que
+ * los límites de uso.
+ */
+export function canUseGoogleIntegration(plan: Plan, email: string | null | undefined): boolean {
+  if (isUnlimitedUser(email)) return true;
+  return plan === "PRO" || plan === "PREMIUM";
+}

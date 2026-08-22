@@ -1,4 +1,5 @@
 import { AIProviderError } from "./ai/provider";
+import { GoogleOAuthError } from "./google/oauth";
 
 /**
  * Traduce cualquier error interno a un mensaje en español, comprensible
@@ -6,6 +7,36 @@ import { AIProviderError } from "./ai/provider";
  * mensajes de error crudos (stack traces, nombres de librerías) al usuario.
  */
 export function toUserFacingError(err: unknown): { message: string; status: number } {
+  if (err instanceof GoogleOAuthError) {
+    switch (err.kind) {
+      case "not_configured":
+        return {
+          message: "La conexión con Google no está configurada en este momento. Avisá al equipo.",
+          status: 500,
+        };
+      case "denied":
+        return { message: "Cancelaste la conexión con Google.", status: 400 };
+      case "invalid_state":
+        return {
+          message: "No pudimos validar la conexión con Google. Probá de nuevo.",
+          status: 400,
+        };
+      case "token_exchange_failed":
+      case "userinfo_failed":
+        return {
+          message: "No pudimos completar la conexión con Google. Probá de nuevo.",
+          status: 502,
+        };
+      case "refresh_failed":
+        return {
+          message: "Tu conexión con Google expiró. Reconectá tu cuenta para seguir sincronizando.",
+          status: 409,
+        };
+      default:
+        return { message: "Ocurrió un error inesperado conectando con Google.", status: 500 };
+    }
+  }
+
   if (err instanceof AIProviderError) {
     switch (err.kind) {
       case "timeout":
