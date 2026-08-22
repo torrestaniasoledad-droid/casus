@@ -1,6 +1,7 @@
 import type { Content } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { EDITORIAL_STATUS_LABEL, FORMAT_LABEL, OBJECTIVE_LABEL } from "@/lib/labels";
+import { dateColumnToCalendarDateString } from "@/lib/dateOnly";
 import { getValidAccessToken } from "./account";
 import { createCasusFolder, moveFileToFolder } from "./drive";
 import {
@@ -43,10 +44,14 @@ function toSheetRow(content: Content): SheetRowData {
     format: content.format ? FORMAT_LABEL[content.format] : "",
     objective: content.objective ? OBJECTIVE_LABEL[content.objective] : "",
     editorialStatus: EDITORIAL_STATUS_LABEL[content.editorialStatus] ?? content.editorialStatus,
-    scheduledFor: content.scheduledFor ? content.scheduledFor.toISOString().slice(0, 10) : "",
+    scheduledFor: content.scheduledFor ? dateColumnToCalendarDateString(content.scheduledFor) : "",
     channel: content.channel ?? "",
     editorialNote: content.editorialNote ?? "",
     link: `${appUrl}/dashboard/library/${content.id}`,
+    // TODO(huso horario por profesional, fase separada): esto usa el reloj
+    // y el huso horario del SERVIDOR (Vercel = UTC), no el de la
+    // profesional — "es-AR" acá solo define el formato, no el offset
+    // horario real. Corresponde arreglarlo junto con Profile.timeZone.
     updatedAt: new Date().toLocaleString("es-AR"),
   };
 }

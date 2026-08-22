@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getMonthGrid, isSameDay } from "@/lib/calendarGrid";
+import { formatCalendarDateString } from "@/lib/dateOnly";
 import { FORMAT_LABEL } from "@/lib/labels";
 import type { EditorialItem } from "./EditorialBoard";
 
@@ -15,6 +16,10 @@ const WEEKDAY_LABELS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
  * Grilla mensual en desktop; en mobile, una grilla de 7 columnas es poco
  * usable, así que se muestra una agenda (lista agrupada por fecha) con los
  * mismos datos — se conmuta con CSS (`md:`), sin duplicar el fetch.
+ *
+ * `item.scheduledFor` es "YYYY-MM-DD" (ver lib/dateOnly.ts) — todas las
+ * comparaciones acá son de strings, nunca de Date, justamente para no
+ * reintroducir el bug de huso horario que motivó ese módulo.
  */
 export function EditorialCalendar({ items }: { items: EditorialItem[] }) {
   const scheduled = useMemo(
@@ -31,15 +36,16 @@ export function EditorialCalendar({ items }: { items: EditorialItem[] }) {
     () =>
       scheduled
         .filter((i) => {
-          const d = new Date(i.scheduledFor);
-          return d.getFullYear() === cursor.getFullYear() && d.getMonth() === cursor.getMonth();
+          const [year, month] = i.scheduledFor.split("-").map(Number);
+          return year === cursor.getFullYear() && month - 1 === cursor.getMonth();
         })
-        .sort((a, b) => new Date(a.scheduledFor).getTime() - new Date(b.scheduledFor).getTime()),
+        // "YYYY-MM-DD" ordena cronológicamente como string, sin pasar por Date.
+        .sort((a, b) => a.scheduledFor.localeCompare(b.scheduledFor)),
     [scheduled, cursor]
   );
 
-  function itemsForDay(day: Date) {
-    return scheduled.filter((i) => isSameDay(new Date(i.scheduledFor), day));
+  function itemsForDay(dateStr: string) {
+    return scheduled.filter((i) => i.scheduledFor === dateStr);
   }
 
   const monthLabel = cursor.toLocaleDateString("es-AR", { month: "long", year: "numeric" });
@@ -85,8 +91,8 @@ export function EditorialCalendar({ items }: { items: EditorialItem[] }) {
           ))}
         </div>
         <div className="grid grid-cols-7 gap-px bg-line rounded-md overflow-hidden border border-line">
-          {weeks.flat().map(({ date, inMonth }, i) => {
-            const dayItems = itemsForDay(date);
+          {weeks.flat().map(({ date, dateStr, inMonth }, i) => {
+            const dayItems = itemsForDay(dateStr);
             const isToday = isSameDay(date, today);
             return (
               <div key={i} className={`bg-surface min-h-[92px] p-1.5 ${!inMonth ? "opacity-40" : ""}`}>
@@ -128,11 +134,7 @@ export function EditorialCalendar({ items }: { items: EditorialItem[] }) {
             <Card className="flex items-center justify-between gap-3">
               <div>
                 <div className="text-xs text-ink-muted mb-1">
-                  {new Date(item.scheduledFor).toLocaleDateString("es-AR", {
-                    weekday: "short",
-                    day: "2-digit",
-                    month: "short",
-                  })}
+                  {formatCalendarDateString(item.scheduledFor, { weekday: "short", day: "2-digit", month: "short" })}
                 </div>
                 <div className="text-sm font-medium line-clamp-2">{item.title ?? "Sin título"}</div>
               </div>

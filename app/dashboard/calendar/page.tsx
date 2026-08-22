@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db/prisma";
 import { EditorialPlanner } from "@/components/content/EditorialPlanner";
 import { GoogleStatusChip } from "@/components/integrations/GoogleStatusChip";
 import type { EditorialItem } from "@/components/content/EditorialBoard";
+import { dateColumnToCalendarDateString } from "@/lib/dateOnly";
 
 export default async function CalendarPage() {
   const session = await getServerSession(authOptions);
@@ -19,7 +20,7 @@ export default async function CalendarPage() {
     title: c.title,
     format: c.format,
     editorialStatus: c.editorialStatus,
-    scheduledFor: c.scheduledFor ? c.scheduledFor.toISOString() : null,
+    scheduledFor: c.scheduledFor ? dateColumnToCalendarDateString(c.scheduledFor) : null,
   }));
 
   return (

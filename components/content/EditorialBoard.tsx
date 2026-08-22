@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { EDITORIAL_STATUS_LABEL, EDITORIAL_STATUS_ORDER, FORMAT_LABEL } from "@/lib/labels";
+import { formatCalendarDateString } from "@/lib/dateOnly";
 import { NewIdeaForm } from "./NewIdeaForm";
 import { ChevronDown, ChevronRight } from "lucide-react";
 
@@ -13,7 +14,7 @@ export interface EditorialItem {
   title: string | null;
   format: string | null;
   editorialStatus: string;
-  scheduledFor: string | null; // ISO
+  scheduledFor: string | null; // "YYYY-MM-DD", ver lib/dateOnly.ts — nunca un ISO con hora
 }
 
 // Un acento de color por columna, para que el ojo distinga el estado sin
@@ -43,11 +44,7 @@ function StatusCard({
       </Link>
       <div className="text-xs text-ink-muted flex items-center justify-between gap-2">
         <span>{item.format ? FORMAT_LABEL[item.format] : "Idea suelta"}</span>
-        {item.scheduledFor && (
-          <span>
-            {new Date(item.scheduledFor).toLocaleDateString("es-AR", { day: "2-digit", month: "short" })}
-          </span>
-        )}
+        {item.scheduledFor && <span>{formatCalendarDateString(item.scheduledFor)}</span>}
       </div>
       <select
         value={item.editorialStatus}

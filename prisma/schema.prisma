@@ -140,8 +140,15 @@ model Content {
   // EditorialStatus). Todo lo de acá abajo es opcional a propósito: una
   // idea recién anotada no tiene fecha, canal ni fila en Sheets todavía.
   editorialStatus EditorialStatus @default(IDEA)
-  scheduledFor    DateTime? // fecha/hora planeada de publicación, para la vista de calendario
-  publishedAt     DateTime? // se completa cuando pasa a EditorialStatus.PUBLICADO
+  // Día del calendario en el que está planeada la publicación — SIN hora ni
+  // huso horario (@db.Date: Postgres guarda solo la fecha). A propósito:
+  // "24 de agosto" es 24 de agosto en cualquier huso horario, y tratarlo
+  // como un instante (con hora) fue la causa de un bug real de "aparece un
+  // día antes" cuando se leía con getters de huso horario local. Ver
+  // lib/dateOnly.ts — todo el código que lee/escribe este campo pasa por
+  // ahí, nunca directo por `new Date(...)`/getters locales.
+  scheduledFor  DateTime? @db.Date
+  publishedAt   DateTime? // este sí es un instante real (se guarda con hora), no un día del calendario
   channel         String? // red destino de esta pieza puntual (instagram, tiktok...), texto libre igual que Profile.mainNetwork
   editorialNote   String? // nota corta libre del profesional
 

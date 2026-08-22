@@ -8,6 +8,7 @@ import { RiskSummary } from "@/components/content/RiskSummary";
 import { ContentEditor } from "@/components/content/ContentEditor";
 import { EditorialPlanningCard } from "@/components/content/EditorialPlanningCard";
 import { FORMAT_LABEL, OBJECTIVE_LABEL } from "@/lib/labels";
+import { dateColumnToCalendarDateString } from "@/lib/dateOnly";
 import { ArrowLeft, FileText } from "lucide-react";
 
 const CATEGORY_LABEL: Record<string, string> = {
@@ -111,7 +112,7 @@ export default async function ContentDetailPage({ params }: { params: { id: stri
       <EditorialPlanningCard
         contentId={content.id}
         editorialStatus={content.editorialStatus}
-        scheduledFor={content.scheduledFor ? content.scheduledFor.toISOString().slice(0, 10) : null}
+        scheduledFor={content.scheduledFor ? dateColumnToCalendarDateString(content.scheduledFor) : null}
         channel={content.channel}
         editorialNote={content.editorialNote}
       />

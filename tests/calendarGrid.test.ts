@@ -26,6 +26,13 @@ describe("getMonthGrid", () => {
     expect(inMonthDays[27].date.getDate()).toBe(28);
   });
 
+  it("dateStr es el 'YYYY-MM-DD' canónico de cada celda, incluidos los días de relleno", () => {
+    const weeks = getMonthGrid(2026, 7); // agosto 2026
+    expect(weeks[0][0].dateStr).toBe("2026-07-27"); // primer día de relleno (julio)
+    const firstOfMonth = weeks.flat().find((d) => d.inMonth && d.date.getDate() === 1)!;
+    expect(firstOfMonth.dateStr).toBe("2026-08-01");
+  });
+
   it("febrero bisiesto trae 29 días", () => {
     const weeks = getMonthGrid(2028, 1);
     const inMonthDays = weeks.flat().filter((d) => d.inMonth);

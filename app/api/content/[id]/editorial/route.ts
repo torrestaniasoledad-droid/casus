@@ -4,10 +4,17 @@ import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db/prisma";
 import { syncContent } from "@/lib/google/sync";
+import { calendarDateStringToDate, isValidCalendarDateString } from "@/lib/dateOnly";
 
 const editorialSchema = z.object({
   editorialStatus: z.enum(["IDEA", "EN_PROCESO", "LISTO", "PROGRAMADO", "PUBLICADO", "NO_UTILIZAR"]).optional(),
-  scheduledFor: z.string().nullable().optional(), // "YYYY-MM-DD" o null para borrar la fecha
+  // "YYYY-MM-DD" o null para borrar la fecha. Se valida con el mismo
+  // criterio que usa el resto de la app para fechas puras (ver lib/dateOnly.ts).
+  scheduledFor: z
+    .string()
+    .nullable()
+    .optional()
+    .refine((v) => v == null || isValidCalendarDateString(v), { message: "Fecha inválida." }),
   channel: z.string().trim().max(60).nullable().optional(),
   editorialNote: z.string().trim().max(500).nullable().optional(),
 });
@@ -43,7 +50,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     data: {
       ...(data.editorialStatus !== undefined && { editorialStatus: data.editorialStatus }),
       ...(data.scheduledFor !== undefined && {
-        scheduledFor: data.scheduledFor ? new Date(data.scheduledFor) : null,
+        scheduledFor: data.scheduledFor ? calendarDateStringToDate(data.scheduledFor) : null,
       }),
       ...(data.channel !== undefined && { channel: data.channel }),
       ...(data.editorialNote !== undefined && { editorialNote: data.editorialNote }),
