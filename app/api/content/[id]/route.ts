@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db/prisma";
+import { removeContentRow } from "@/lib/google/sync";
 
 const editSchema = z.object({
   title: z.string().min(1).optional(),
@@ -48,6 +49,12 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
 
   // onDelete: Cascade en el schema se encarga de versions/analysis/privacyFlags.
   await prisma.content.delete({ where: { id: params.id } });
+
+  // Best-effort: limpia la fila en Sheets si tenía Google conectado. Se
+  // captura sheetRowId ANTES del delete de arriba porque ya no hay Content
+  // del que leerlo después.
+  await removeContentRow(userId, content.sheetRowId);
+
   return NextResponse.json({ ok: true });
 }
 

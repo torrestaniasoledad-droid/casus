@@ -32,3 +32,22 @@ export const STATUS_LABEL: Record<string, string> = {
   GUARDADO: "Guardado",
   ARCHIVADO: "Archivado",
 };
+
+export const EDITORIAL_STATUS_LABEL: Record<string, string> = {
+  IDEA: "Idea",
+  EN_PROCESO: "En proceso",
+  LISTO: "Listo",
+  PROGRAMADO: "Programado",
+  PUBLICADO: "Publicado",
+  NO_UTILIZAR: "No utilizar",
+};
+
+/** Orden fijo de columnas del checklist editorial — es el mismo orden en toda la UI (tablero, selects, etc.). */
+export const EDITORIAL_STATUS_ORDER = [
+  "IDEA",
+  "EN_PROCESO",
+  "LISTO",
+  "PROGRAMADO",
+  "PUBLICADO",
+  "NO_UTILIZAR",
+] as const;

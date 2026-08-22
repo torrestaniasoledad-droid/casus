@@ -41,7 +41,7 @@ export default async function ProfilePage() {
         </Link>
       </Card>
 
-      <Card className="divide-y divide-line">
+      <Card className="divide-y divide-line mb-4">
         {profile &&
           (Object.keys(FIELD_LABEL) as (keyof typeof FIELD_LABEL)[]).map((key) => (
             <div key={key} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
@@ -53,6 +53,18 @@ export default async function ProfilePage() {
               </span>
             </div>
           ))}
+      </Card>
+
+      <Card className="flex items-center justify-between">
+        <div>
+          <div className="text-sm font-medium text-ink">Integraciones</div>
+          <div className="text-xs text-ink-muted">Conectá Google Drive para tu calendario editorial.</div>
+        </div>
+        <Link href="/dashboard/integrations">
+          <Button variant="secondary" size="sm">
+            Gestionar
+          </Button>
+        </Link>
       </Card>
     </div>
   );

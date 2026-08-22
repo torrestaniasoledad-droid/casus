@@ -55,6 +55,33 @@ enum RiskLevel {
   ALTO
 }
 
+// Estado del checklist/calendario editorial. Es independiente de
+// ContentStatus: ContentStatus describe qué tan lejos llegó el contenido en
+// el pipeline de generación con IA (borrador → generado → editado...);
+// EditorialStatus describe en qué etapa del flujo de publicación está, sin
+// importar si ya se generó con IA o es todavía una idea suelta. Un Content
+// puede existir en EditorialStatus.IDEA sin tener format/objective/
+// clinicalLearning todavía — es justamente el caso de una idea anotada
+// antes de pasar por el análisis/generación.
+enum EditorialStatus {
+  IDEA
+  EN_PROCESO
+  LISTO
+  PROGRAMADO
+  PUBLICADO
+  NO_UTILIZAR
+}
+
+// Estado de la conexión OAuth con Google de un usuario. NEEDS_REAUTH cubre
+// el caso en que el refresh token dejó de ser válido del lado de Google
+// (revocado manualmente por el usuario, o vencido por 6 meses sin uso) —
+// la app debe pedir reconectar en vez de fallar en silencio.
+enum GoogleAccountStatus {
+  CONNECTED
+  NEEDS_REAUTH
+  DISCONNECTED
+}
+
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
@@ -63,11 +90,12 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  profile      Profile?
-  contents     Content[]
-  subscription Subscription?
-  usage        Usage[]
-  settings     Settings?
+  profile       Profile?
+  contents      Content[]
+  subscription  Subscription?
+  usage         Usage[]
+  settings      Settings?
+  googleAccount GoogleAccount?
 
   @@map("users")
 }
@@ -76,9 +104,9 @@ model User {
 // por una lista en la capa de aplicación, no un enum de base de datos, para
 // poder sumar profesiones sin migrar el esquema.
 model Profile {
-  id             String   @id @default(cuid())
-  userId         String   @unique
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String    @id @default(cuid())
+  userId         String    @unique
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   displayName    String
   profession     String // ej: "fonoaudiologia"
   specialty      String? // ej: "lenguaje infantil"
@@ -86,32 +114,49 @@ model Profile {
   mainNetwork    String? // instagram, tiktok, etc.
   mainGoal       String // conseguir_pacientes | autoridad | educar | seguidores | consultas | promocion
   onboardedAt    DateTime?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   @@map("profiles")
 }
 
 // Una pieza de contenido. NO tiene columna para el texto original del caso.
 model Content {
-  id                 String            @id @default(cuid())
-  userId             String
-  user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  title              String?
-  objective          ContentObjective?
-  format             ContentFormat?
-  status             ContentStatus     @default(BORRADOR)
-  riskLevel          RiskLevel?
-  clinicalLearning   String? // aprendizaje extraído, ya desidentificado
-  deidentifiedInput  String? // el input del usuario, ya desidentificado (nunca el original)
-  createdAt          DateTime          @default(now())
-  updatedAt          DateTime          @updatedAt
+  id                String            @id @default(cuid())
+  userId            String
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title             String?
+  objective         ContentObjective?
+  format            ContentFormat?
+  status            ContentStatus     @default(BORRADOR)
+  riskLevel         RiskLevel?
+  clinicalLearning  String? // aprendizaje extraído, ya desidentificado
+  deidentifiedInput String? // el input del usuario, ya desidentificado (nunca el original)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
 
-  versions      ContentVersion[]
-  analyses      Analysis[]
-  privacyFlags  PrivacyFlag[]
+  // --- Calendario / checklist editorial ---
+  // Campo nuevo e independiente de `status` (ver comentario en el enum
+  // EditorialStatus). Todo lo de acá abajo es opcional a propósito: una
+  // idea recién anotada no tiene fecha, canal ni fila en Sheets todavía.
+  editorialStatus EditorialStatus @default(IDEA)
+  scheduledFor    DateTime? // fecha/hora planeada de publicación, para la vista de calendario
+  publishedAt     DateTime? // se completa cuando pasa a EditorialStatus.PUBLICADO
+  channel         String? // red destino de esta pieza puntual (instagram, tiktok...), texto libre igual que Profile.mainNetwork
+  editorialNote   String? // nota corta libre del profesional
+
+  // --- Sincronización con Google Sheets (capa de visualización, no de datos) ---
+  sheetRowId   Int? // fila en la planilla del usuario, para actualizar in-place; se re-busca por id si no coincide (ver lib/google/sync)
+  lastSyncedAt DateTime? // última vez que esta fila se sincronizó a Sheets
+
+  versions     ContentVersion[]
+  analyses     Analysis[]
+  privacyFlags PrivacyFlag[]
+  syncLogs     SheetSyncLog[]
 
   @@index([userId, status])
+  @@index([userId, editorialStatus])
+  @@index([userId, scheduledFor])
   @@map("content")
 }
 
@@ -149,41 +194,41 @@ model Analysis {
 // Un dato detectado y qué se hizo con él. Se guarda el TIPO y la ACCIÓN,
 // nunca el valor identificable original.
 model PrivacyFlag {
-  id         String   @id @default(cuid())
-  contentId  String
-  content    Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
-  category   String // nombre | edad | institucion | ubicacion | fecha | relacion | otro
-  action     String // eliminado | generalizado
+  id          String   @id @default(cuid())
+  contentId   String
+  content     Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  category    String // nombre | edad | institucion | ubicacion | fecha | relacion | otro
+  action      String // eliminado | generalizado
   replacement String? // ej: "una niña en edad escolar" (el texto sustituto, no el original)
-  createdAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
 
   @@map("privacy_flags")
 }
 
 model Subscription {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  plan      Plan     @default(FREE)
-  provider  String? // "mercadopago" una vez conectado el pago real; null mientras no haya pagos
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan       Plan     @default(FREE)
+  provider   String? // "mercadopago" una vez conectado el pago real; null mientras no haya pagos
   externalId String?
-  status    String   @default("active")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  status     String   @default("active")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@map("subscriptions")
 }
 
 // Contador de uso por período, para aplicar límites de plan (FREE/PRO/PREMIUM).
 model Usage {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  period    String // "2026-08" (año-mes)
-  analyses  Int      @default(0)
-  generations Int    @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  period      String // "2026-08" (año-mes)
+  analyses    Int      @default(0)
+  generations Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@unique([userId, period])
   @@map("usage")
@@ -193,10 +238,78 @@ model Settings {
   id                 String   @id @default(cuid())
   userId             String   @unique
   user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  language            String   @default("es")
-  autoDeleteRawInput  Boolean  @default(true) // borra input crudo apenas se desidentifica
+  language           String   @default("es")
+  autoDeleteRawInput Boolean  @default(true) // borra input crudo apenas se desidentifica
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
   @@map("settings")
+}
+
+// Conexión OAuth de un usuario con su propia cuenta de Google (Drive +
+// Sheets). Es un flujo separado del login de CASUS (NextAuth solo usa
+// CredentialsProvider) — conectar Google acá NO es "iniciar sesión con
+// Google", es autorizar a CASUS a crear/editar sus propios archivos dentro
+// del Drive del profesional. Por eso vive en su propia tabla y no en las
+// tablas que usaría el adapter de NextAuth (Account/Session), que este
+// proyecto no tiene porque nunca las necesitó hasta ahora.
+//
+// accessToken/refreshToken se guardan SIEMPRE cifrados (AES-GCM con
+// ENCRYPTION_KEY) — nunca en texto plano. Al desconectar, se vacían de
+// inmediato pero se conservan driveFolderId/sheetId para poder reutilizar
+// la misma carpeta/planilla si el profesional reconecta más adelante, en
+// vez de crear una duplicada.
+model GoogleAccount {
+  id     String @id @default(cuid())
+  userId String @unique // una cuenta Google conectada por profesional (alcanza para el alcance actual)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  googleUserId String // "sub" del id_token de Google — permite detectar si reconectan con una cuenta distinta
+  googleEmail  String // email de la cuenta Google conectada (puede diferir del email de login de CASUS)
+
+  accessTokenEnc  String?   @db.Text // cifrado; null si está DISCONNECTED
+  refreshTokenEnc String?   @db.Text // cifrado; null si está DISCONNECTED
+  expiresAt       DateTime? // vencimiento del access token actual
+  scopes          String? // scopes efectivamente otorgados, tal cual los devuelve Google
+
+  driveFolderId String? // carpeta "CASUS" creada/detectada en su Drive
+  sheetId       String? // spreadsheetId de la planilla del calendario editorial
+  sheetUrl      String? // URL directa, para el botón "Abrir en Google Sheets"
+
+  status        GoogleAccountStatus @default(CONNECTED)
+  lastSyncAt    DateTime?
+  lastSyncError String? // mensaje legible para mostrar en la UI; nunca un stack trace ni datos del token
+
+  connectedAt DateTime  @default(now())
+  revokedAt   DateTime?
+  updatedAt   DateTime  @updatedAt
+
+  syncLogs SheetSyncLog[]
+
+  @@map("google_accounts")
+}
+
+// Auditoría de cada intento de sincronización hacia Sheets. Con la
+// sincronización manual + on-status-change que se definió, el volumen es
+// bajo — el objetivo no es analytics, es poder responder "¿por qué esta
+// fila no se actualizó en Sheets?" sin tener que leer logs de servidor.
+model SheetSyncLog {
+  id String @id @default(cuid())
+
+  googleAccountId String
+  googleAccount   GoogleAccount @relation(fields: [googleAccountId], references: [id], onDelete: Cascade)
+
+  // Se usa SetNull (no Cascade): si se borra el Content, el registro de que
+  // "se sincronizó y después falló" sigue existiendo para diagnóstico, solo
+  // pierde la referencia.
+  contentId String?
+  content   Content? @relation(fields: [contentId], references: [id], onDelete: SetNull)
+
+  action       String // "create_row" | "update_row" | "delete_row" | "provision_sheet" | "full_resync"
+  success      Boolean
+  errorMessage String?
+  createdAt    DateTime @default(now())
+
+  @@index([googleAccountId, createdAt])
+  @@map("sheet_sync_logs")
 }

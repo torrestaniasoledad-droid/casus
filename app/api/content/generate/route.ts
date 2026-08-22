@@ -9,6 +9,7 @@ import { getUsageLimit, currentPeriod } from "@/lib/plans";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { assertEnv } from "@/lib/env";
 import { ensureHashtagSymbols } from "@/lib/hashtags";
+import { syncContent } from "@/lib/google/sync";
 
 const generateSchema = z.object({
   contentId: z.string().min(1),
@@ -181,6 +182,11 @@ export async function POST(req: Request) {
         data: { generations: { increment: 1 } },
       }),
     ]);
+
+    // Best-effort: recién acá el contenido tiene título/formato reales,
+    // así que es el punto natural para que aparezca (o se actualice) en la
+    // planilla si tiene Google conectado.
+    await syncContent(userId, content.id);
 
     return NextResponse.json({
       versionId: version.id,
