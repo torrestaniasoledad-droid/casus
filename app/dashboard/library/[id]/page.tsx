@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db/prisma";
 import { Card } from "@/components/ui/Card";
 import { RiskSummary } from "@/components/content/RiskSummary";
 import { ContentEditor } from "@/components/content/ContentEditor";
+import { EditorialPlanningCard } from "@/components/content/EditorialPlanningCard";
 import { FORMAT_LABEL, OBJECTIVE_LABEL } from "@/lib/labels";
 import { ArrowLeft, FileText } from "lucide-react";
 
@@ -106,6 +107,14 @@ export default async function ContentDetailPage({ params }: { params: { id: stri
           </div>
         </Card>
       )}
+
+      <EditorialPlanningCard
+        contentId={content.id}
+        editorialStatus={content.editorialStatus}
+        scheduledFor={content.scheduledFor ? content.scheduledFor.toISOString().slice(0, 10) : null}
+        channel={content.channel}
+        editorialNote={content.editorialNote}
+      />
 
       {latest && content.format ? (
         <ContentEditor

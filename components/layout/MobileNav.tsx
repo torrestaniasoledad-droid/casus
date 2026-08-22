@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { PenLine, FolderOpen, LayoutGrid, UserRound } from "lucide-react";
+import { PenLine, FolderOpen, LayoutGrid, UserRound, Calendar } from "lucide-react";
 import clsx from "clsx";
 
 const NAV = [
   { href: "/dashboard", label: "Inicio", icon: LayoutGrid },
   { href: "/dashboard/create", label: "Crear", icon: PenLine },
   { href: "/dashboard/library", label: "Biblioteca", icon: FolderOpen },
+  { href: "/dashboard/calendar", label: "Calendario", icon: Calendar },
   { href: "/dashboard/profile", label: "Perfil", icon: UserRound },
 ];
 
