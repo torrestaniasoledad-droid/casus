@@ -4,6 +4,7 @@ import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db/prisma";
 import { checkRateLimit } from "@/lib/rateLimit";
+import { syncContent } from "@/lib/google/sync";
 
 const ideaSchema = z.object({
   title: z.string().trim().min(1, "Escribí un título.").max(200),
@@ -49,6 +50,10 @@ export async function POST(req: Request) {
       editorialNote: parsed.data.editorialNote || null,
     },
   });
+
+  // Best-effort: si tiene Google conectado, aparece en la planilla de
+  // inmediato. Nunca bloquea ni hace fallar la creación de la idea.
+  await syncContent(userId, content.id);
 
   return NextResponse.json({ id: content.id });
 }

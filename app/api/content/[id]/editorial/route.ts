@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db/prisma";
+import { syncContent } from "@/lib/google/sync";
 
 const editorialSchema = z.object({
   editorialStatus: z.enum(["IDEA", "EN_PROCESO", "LISTO", "PROGRAMADO", "PUBLICADO", "NO_UTILIZAR"]).optional(),
@@ -53,6 +54,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
         !content.publishedAt && { publishedAt: new Date() }),
     },
   });
+
+  // Best-effort: si tiene Google conectado, refleja el cambio en la
+  // planilla ahora mismo. Nunca bloquea ni hace fallar esta actualización.
+  await syncContent(userId, content.id);
 
   return NextResponse.json({
     id: updated.id,

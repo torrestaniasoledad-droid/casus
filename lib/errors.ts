@@ -32,6 +32,8 @@ export function toUserFacingError(err: unknown): { message: string; status: numb
           message: "Tu conexión con Google expiró. Reconectá tu cuenta para seguir sincronizando.",
           status: 409,
         };
+      case "not_connected":
+        return { message: "No tenés Google Drive conectado todavía.", status: 400 };
       default:
         return { message: "Ocurrió un error inesperado conectando con Google.", status: 500 };
     }

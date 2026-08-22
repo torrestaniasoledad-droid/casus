@@ -70,6 +70,19 @@ export function GoogleIntegrationCard() {
     window.location.href = json.authUrl;
   }
 
+  async function handleSync() {
+    setBusy(true);
+    setError(null);
+    const res = await fetch("/api/integrations/google/sync", { method: "POST" });
+    setBusy(false);
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}));
+      setError(json.error ?? "No pudimos sincronizar.");
+      return;
+    }
+    loadStatus();
+  }
+
   async function handleDisconnect() {
     if (!confirm("¿Desconectar Google Drive? Vas a poder reconectar cuando quieras.")) return;
     setBusy(true);
@@ -152,10 +165,27 @@ export function GoogleIntegrationCard() {
               Abrir planilla <ExternalLink size={14} />
             </a>
           )}
+
+          {data.connected && (
+            <div className="text-xs text-ink-muted">
+              {data.lastSyncAt
+                ? `Última sincronización: ${new Date(data.lastSyncAt).toLocaleString("es-AR")}`
+                : "Todavía no se sincronizó."}
+            </div>
+          )}
+          {data.lastSyncError && (
+            <p className="text-xs text-danger">No pudimos sincronizar la última vez: {data.lastSyncError}</p>
+          )}
+
           <div className="flex gap-2 pt-1">
             {data.status === "NEEDS_REAUTH" && (
               <Button size="sm" onClick={handleConnect} disabled={busy}>
                 Reconectar
+              </Button>
+            )}
+            {data.connected && (
+              <Button size="sm" variant="secondary" onClick={handleSync} disabled={busy}>
+                {busy ? "Sincronizando..." : "Sincronizar ahora"}
               </Button>
             )}
             <Button

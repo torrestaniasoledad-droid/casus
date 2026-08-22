@@ -45,6 +45,7 @@ export class GoogleOAuthError extends Error {
       | "token_exchange_failed"
       | "refresh_failed"
       | "userinfo_failed"
+      | "not_connected"
   ) {
     super(message);
     this.name = "GoogleOAuthError";

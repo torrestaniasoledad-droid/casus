@@ -4,18 +4,14 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db/prisma";
 import { encrypt } from "@/lib/google/crypto";
 import { assertGoogleEnv, exchangeCodeForTokens, getGoogleUserInfo, verifyState } from "@/lib/google/oauth";
+import { fullResync } from "@/lib/google/sync";
 
 /**
  * Callback al que redirige Google después de la pantalla de consentimiento.
  * Esta ruta la navega el navegador directamente (no un fetch desde el
  * frontend), así que siempre responde con un redirect — nunca JSON — hacia
  * /dashboard/integrations, con un query param de resultado que esa pantalla
- * (fase de UI, pendiente) usa para mostrar un mensaje.
- *
- * Deliberadamente NO crea todavía la carpeta ni la planilla en Drive/Sheets
- * — eso es responsabilidad del módulo de aprovisionamiento (próxima fase).
- * Esta ruta se limita a dejar la conexión OAuth guardada y en estado
- * CONNECTED.
+ * usa para mostrar un mensaje.
  */
 export async function GET(req: Request) {
   const url = new URL(req.url);
@@ -104,6 +100,17 @@ export async function GET(req: Request) {
       // reutiliza la carpeta/planilla existente en vez de crear otra.
     },
   });
+
+  // Aprovisiona carpeta+planilla y hace el volcado inicial. Best-effort a
+  // propósito: si falla acá (Drive/Sheets caídos, cuota, lo que sea), la
+  // conexión OAuth en sí ya quedó guardada y CONNECTED — la profesional
+  // puede reintentar con "Sincronizar ahora" sin tener que reconectar.
+  try {
+    await fullResync(userId);
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error("Google: no se pudo aprovisionar Drive/Sheets al conectar.", err);
+  }
 
   return redirectTo("connected");
 }
